@@ -443,3 +443,55 @@ HERO
     }
     
     }
+
+/*============================
+Hero slider (3 slides apilados;
+el activo se muestra con fade)
+============================*/
+
+.hero__image.hero-slider{
+    display:grid;
+    position:relative;
+}
+
+.hero-slider .hero-slide{
+    grid-area:1 / 1;
+    opacity:0;
+    transition:opacity .8s ease;
+    pointer-events:none;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.hero-slider .hero-slide.active{
+    opacity:1;
+    pointer-events:auto;
+}
+
+.hero-slider__dots{
+    grid-area:1 / 1;
+    align-self:end;
+    justify-self:center;
+    display:flex;
+    gap:8px;
+    z-index:5;
+    padding-bottom:8px;
+}
+
+.hero-slider__dots button{
+    width:10px;
+    height:10px;
+    border-radius:50%;
+    border:none;
+    cursor:pointer;
+    background:rgba(141,110,99,.35);
+    transition:.3s;
+    padding:0;
+}
+
+.hero-slider__dots button.active{
+    background:#8D6E63;
+    width:24px;
+    border-radius:50px;
+}

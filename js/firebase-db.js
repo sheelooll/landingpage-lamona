@@ -117,13 +117,50 @@
     }
 
     /*============================
+    Imágenes del sitio (hero, logo…):
+    un doc por imagen, id = clave.
+    Nube → caché local + evento, igual
+    que los productos.
+    ============================*/
+
+    db.collection('imagenes').onSnapshot(snapshot => {
+        const imagenes = {};
+        snapshot.docs.forEach(d => { imagenes[d.id] = d.data().url; });
+        localStorage.setItem('imagenesSitio', JSON.stringify(imagenes));
+        document.dispatchEvent(new Event('imagenesActualizadas'));
+    }, error => {
+        console.warn('[FirebaseDB] Sin conexión a Firestore (imagenes):', error.message);
+    });
+
+    function guardarImagenNube(clave, url) {
+        return db.collection('imagenes').doc(clave).set({ url })
+            .catch(err => avisarErrorAdmin('guardar la imagen', err));
+    }
+
+    function eliminarImagenNube(clave) {
+        return db.collection('imagenes').doc(clave).delete()
+            .catch(err => avisarErrorAdmin('restaurar la imagen', err));
+    }
+
+    function restaurarImagenesNube() {
+        return db.collection('imagenes').get().then(snapshot => {
+            const batch = db.batch();
+            snapshot.docs.forEach(doc => batch.delete(doc.ref));
+            return batch.commit();
+        }).catch(err => avisarErrorAdmin('restaurar las imágenes', err));
+    }
+
+    /*============================
     API pública
     ============================*/
 
     window.FirebaseDB = {
         guardarProductos: guardarProductosNube,
         guardarPedido: guardarPedidoNube,
-        limpiarPedidos: limpiarPedidosNube
+        limpiarPedidos: limpiarPedidosNube,
+        guardarImagen: guardarImagenNube,
+        eliminarImagen: eliminarImagenNube,
+        restaurarImagenes: restaurarImagenesNube
     };
 
 })();

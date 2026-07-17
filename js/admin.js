@@ -275,7 +275,8 @@ Sidebar navigation
 
 const secciones = {
     productos: document.getElementById('productosSection'),
-    pedidos:   document.getElementById('pedidosSection')
+    pedidos:   document.getElementById('pedidosSection'),
+    imagenes:  document.getElementById('imagenesSection')
 };
 
 document.querySelectorAll('.sidebar li[data-section]').forEach(item => {
@@ -325,6 +326,135 @@ function limpiarPedidos() {
 }
 
 /*============================
+Imágenes de la portada
+(las 3 fotos del slider del index)
+============================*/
+
+const FOTOS_PORTADA = [
+    { clave: 'hero-slide-1', titulo: 'Foto principal 1' },
+    { clave: 'hero-slide-2', titulo: 'Foto 2' },
+    { clave: 'hero-slide-3', titulo: 'Foto 3' }
+];
+const FOTO_ORIGINAL = 'hero1.png';
+const FOTO_MAX_LADO = 1000;
+const FOTO_CALIDAD  = 0.82;
+
+// Cambios elegidos pero aún no guardados: clave → dataURL
+const fotosPendientes = {};
+
+function obtenerImagenesSitio() {
+    return JSON.parse(localStorage.getItem('imagenesSitio')) || {};
+}
+
+function fotoActual(clave) {
+    return obtenerImagenesSitio()[clave] || FOTO_ORIGINAL;
+}
+
+function redimensionarFoto(archivo) {
+    return new Promise((resolve, reject) => {
+        const lector = new FileReader();
+        lector.onload = () => {
+            const img = new Image();
+            img.onload = () => {
+                const escala = Math.min(1, FOTO_MAX_LADO / Math.max(img.width, img.height));
+                const canvas = document.createElement('canvas');
+                canvas.width = Math.round(img.width * escala);
+                canvas.height = Math.round(img.height * escala);
+                canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+                resolve(canvas.toDataURL('image/jpeg', FOTO_CALIDAD));
+            };
+            img.onerror = reject;
+            img.src = lector.result;
+        };
+        lector.onerror = reject;
+        lector.readAsDataURL(archivo);
+    });
+}
+
+function renderizarImagenes() {
+    const grid = document.getElementById('imagenesGrid');
+    if (!grid) return;
+
+    grid.innerHTML = FOTOS_PORTADA.map(({ clave, titulo }) => {
+        const pendiente = fotosPendientes[clave];
+        const personalizada = !!obtenerImagenesSitio()[clave];
+        return `
+        <article class="imagen-card ${pendiente ? 'pendiente' : ''}" data-clave="${clave}">
+            <header>
+                <h3>${titulo}</h3>
+                ${pendiente
+                    ? '<span class="imagen-badge imagen-badge--pendiente">Vista previa — sin guardar</span>'
+                    : personalizada
+                        ? '<span class="imagen-badge">Personalizada</span>'
+                        : '<span class="imagen-badge imagen-badge--original">Original</span>'}
+            </header>
+            <div class="imagen-preview">
+                <img src="${pendiente || fotoActual(clave)}" alt="${titulo}">
+            </div>
+            <div class="imagen-actions">
+                ${pendiente ? `
+                    <button class="btn btn-primary" data-accion="guardar">
+                        <i class="ri-save-line"></i> Guardar
+                    </button>
+                    <button class="btn-cancelar" data-accion="cancelar">
+                        <i class="ri-close-line"></i> Cancelar
+                    </button>
+                ` : `
+                    <label class="btn btn-primary imagen-cambiar">
+                        <i class="ri-image-add-line"></i> Cambiar foto
+                        <input type="file" accept="image/*" data-accion="elegir" hidden>
+                    </label>
+                    ${personalizada ? `
+                    <button class="btn-cancelar" data-accion="restaurar">
+                        <i class="ri-arrow-go-back-line"></i> Restaurar original
+                    </button>` : ''}
+                `}
+            </div>
+        </article>`;
+    }).join('');
+}
+
+document.getElementById('imagenesGrid')?.addEventListener('change', async e => {
+    const input = e.target.closest('input[data-accion="elegir"]');
+    if (!input || !input.files[0]) return;
+    const clave = input.closest('.imagen-card').dataset.clave;
+    try {
+        fotosPendientes[clave] = await redimensionarFoto(input.files[0]);
+        renderizarImagenes();
+    } catch {
+        alert('No se pudo leer la imagen. Intenta con otro archivo.');
+    }
+});
+
+document.getElementById('imagenesGrid')?.addEventListener('click', e => {
+    const btn = e.target.closest('[data-accion]');
+    if (!btn || btn.dataset.accion === 'elegir') return;
+    const clave = btn.closest('.imagen-card').dataset.clave;
+
+    if (btn.dataset.accion === 'guardar') {
+        const imagenes = obtenerImagenesSitio();
+        imagenes[clave] = fotosPendientes[clave];
+        localStorage.setItem('imagenesSitio', JSON.stringify(imagenes));
+        if (window.FirebaseDB) window.FirebaseDB.guardarImagen(clave, fotosPendientes[clave]);
+        delete fotosPendientes[clave];
+    }
+
+    if (btn.dataset.accion === 'cancelar') {
+        delete fotosPendientes[clave];
+    }
+
+    if (btn.dataset.accion === 'restaurar') {
+        if (!confirm('¿Volver a la foto original?')) return;
+        const imagenes = obtenerImagenesSitio();
+        delete imagenes[clave];
+        localStorage.setItem('imagenesSitio', JSON.stringify(imagenes));
+        if (window.FirebaseDB) window.FirebaseDB.eliminarImagen(clave);
+    }
+
+    renderizarImagenes();
+});
+
+/*============================
 Inicializar
 ============================*/
 
@@ -332,11 +462,13 @@ document.addEventListener('DOMContentLoaded', () => {
     checkAdminAuth();
     cargarTabla();
     renderizarPedidos();
+    renderizarImagenes();
 });
 
 // Sincronización en tiempo real desde Firestore (firebase-db.js)
 document.addEventListener('productosActualizados', cargarTabla);
 document.addEventListener('pedidosActualizados', renderizarPedidos);
+document.addEventListener('imagenesActualizadas', renderizarImagenes);
 
 /*============================
 API pública

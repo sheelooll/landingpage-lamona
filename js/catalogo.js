@@ -7,11 +7,17 @@ let productosFiltrados = [];
 let categoriaActual = 'Todos';
 let textoBusqueda = '';
 
-const productsContainer = document.getElementById('productsContainer');
-const searchInput       = document.getElementById('searchInput');
-const chipsContainer    = document.getElementById('chipsContainer');
-const resultCount       = document.getElementById('resultCount');
-const emptyProducts     = document.getElementById('emptyProducts');
+// Paginación
+const PRODUCTOS_POR_PAGINA = 12;
+let paginaActual = 1;
+
+const productsContainer  = document.getElementById('productsContainer');
+const searchInput        = document.getElementById('searchInput');
+const chipsContainer     = document.getElementById('chipsContainer');
+const resultCount        = document.getElementById('resultCount');
+const emptyProducts      = document.getElementById('emptyProducts');
+const paginationControls = document.getElementById('paginationControls');
+const paginationInfo     = document.getElementById('paginationInfo');
 
 /*============================
 Cargar productos
@@ -28,18 +34,84 @@ Render principal
 ============================*/
 
 function renderizarProductos(lista = productosFiltrados) {
+    if (!productsContainer) return;
     productsContainer.innerHTML = '';
 
     if (lista.length === 0) {
         mostrarSinResultados();
+        renderizarPaginacion(0);
         return;
     }
 
     ocultarSinResultados();
-    lista.forEach(p => { productsContainer.innerHTML += crearTarjetaProducto(p); });
-    actualizarContadorCatalogo(lista.length);
+
+    // Solo se pinta la página actual (12 productos)
+    const totalPaginas = Math.ceil(lista.length / PRODUCTOS_POR_PAGINA);
+    paginaActual = Math.min(Math.max(paginaActual, 1), totalPaginas);
+    const inicio = (paginaActual - 1) * PRODUCTOS_POR_PAGINA;
+    const visibles = lista.slice(inicio, inicio + PRODUCTOS_POR_PAGINA);
+
+    visibles.forEach(p => { productsContainer.innerHTML += crearTarjetaProducto(p); });
+    actualizarContadorCatalogo(lista.length, inicio + 1, inicio + visibles.length);
+    renderizarPaginacion(totalPaginas);
     agregarEventosProductos();
     iniciarAnimaciones();
+}
+
+/*============================
+Paginación (12 por página, sin recargar)
+============================*/
+
+function renderizarPaginacion(totalPaginas) {
+    if (!paginationControls) return;
+
+    if (totalPaginas <= 1) {
+        paginationControls.innerHTML = '';
+        if (paginationInfo) paginationInfo.textContent = '';
+        return;
+    }
+
+    // Números visibles: primera, última y una ventana alrededor de la actual
+    const nums = new Set([1, totalPaginas]);
+    for (let n = paginaActual - 2; n <= paginaActual + 2; n++) {
+        if (n >= 1 && n <= totalPaginas) nums.add(n);
+    }
+    const ordenados = [...nums].sort((a, b) => a - b);
+
+    let html = `<button data-action="prev" ${paginaActual === 1 ? 'disabled' : ''}>
+                    <i class="ri-arrow-left-s-line"></i> Anterior
+                </button>`;
+    let anterior = 0;
+    for (const n of ordenados) {
+        if (n - anterior > 1) html += '<span class="pagination__ellipsis">…</span>';
+        html += `<button data-page="${n}" class="${n === paginaActual ? 'active' : ''}">${n}</button>`;
+        anterior = n;
+    }
+    html += `<button data-action="next" ${paginaActual === totalPaginas ? 'disabled' : ''}>
+                Siguiente <i class="ri-arrow-right-s-line"></i>
+             </button>`;
+    paginationControls.innerHTML = html;
+
+    if (paginationInfo) {
+        paginationInfo.textContent = `Página ${paginaActual} de ${totalPaginas}`;
+    }
+}
+
+function irAPagina(pagina) {
+    paginaActual = pagina;
+    renderizarProductos(productosFiltrados);
+    const catalogo = document.getElementById('catalogo');
+    if (catalogo) catalogo.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+if (paginationControls) {
+    paginationControls.addEventListener('click', e => {
+        const btn = e.target.closest('button');
+        if (!btn || btn.disabled) return;
+        if (btn.dataset.action === 'prev') irAPagina(paginaActual - 1);
+        else if (btn.dataset.action === 'next') irAPagina(paginaActual + 1);
+        else if (btn.dataset.page) irAPagina(Number(btn.dataset.page));
+    });
 }
 
 /*============================
@@ -83,7 +155,7 @@ function crearTarjetaProducto(producto) {
     <article class="product fade-up">
         <div class="product__image">
             ${badge}
-            <img src="${producto.imagen}" alt="${producto.nombre}" loading="lazy">
+            <img src="${producto.imagen}" alt="${producto.nombre}" data-producto-id="${producto.id}" loading="lazy">
         </div>
         <div class="product__content">
             <span class="product__category">${producto.categoria}</span>
@@ -178,6 +250,7 @@ Skeleton loading
 ============================*/
 
 function mostrarSkeleton(cantidad = 8) {
+    if (!productsContainer) return;
     productsContainer.innerHTML = '';
     for (let i = 0; i < cantidad; i++) {
         productsContainer.innerHTML += `
@@ -196,9 +269,13 @@ function mostrarSkeleton(cantidad = 8) {
 Contador
 ============================*/
 
-function actualizarContadorCatalogo(total) {
+function actualizarContadorCatalogo(total, desde, hasta) {
     if (!resultCount) return;
-    resultCount.textContent = total === 1 ? 'Mostrando 1 producto' : `Mostrando ${total} productos`;
+    if (total === 0) { resultCount.textContent = 'Mostrando 0 productos'; return; }
+    if (total === 1) { resultCount.textContent = 'Mostrando 1 producto'; return; }
+    resultCount.textContent = (desde && hasta && total > PRODUCTOS_POR_PAGINA)
+        ? `Mostrando ${desde}–${hasta} de ${total} productos`
+        : `Mostrando ${total} productos`;
 }
 
 /*============================
@@ -206,12 +283,14 @@ Sin resultados
 ============================*/
 
 function mostrarSinResultados() {
+    if (!productsContainer) return;
     productsContainer.style.display = 'none';
     if (emptyProducts) emptyProducts.classList.add('show');
     actualizarContadorCatalogo(0);
 }
 
 function ocultarSinResultados() {
+    if (!productsContainer) return;
     productsContainer.style.display = 'grid';
     if (emptyProducts) emptyProducts.classList.remove('show');
 }
@@ -222,6 +301,7 @@ Búsqueda
 
 function buscarProductos(texto) {
     textoBusqueda = texto.toLowerCase().trim();
+    paginaActual = 1;
     aplicarFiltros();
 }
 
@@ -231,6 +311,7 @@ Filtro de categoría
 
 function filtrarCategoria(categoria) {
     categoriaActual = categoria;
+    paginaActual = 1;
     actualizarCategoriaActiva();
     aplicarFiltros();
 }
@@ -347,6 +428,12 @@ Inicializar
 ============================*/
 
 function initCatalogo() {
+    // En páginas sin catálogo (p. ej. index) solo se cargan los datos
+    // para que el carrito y otras utilidades funcionen
+    if (!productsContainer) {
+        cargarProductos();
+        return;
+    }
     mostrarSkeleton();
     setTimeout(() => {
         cargarProductos();

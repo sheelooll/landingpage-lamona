@@ -50,6 +50,9 @@
             <li data-section="pedidos">
                 <i class="ri-file-list-3-line"></i> Pedidos
             </li>
+            <li data-section="imagenes">
+                <i class="ri-image-edit-line"></i> Imágenes
+            </li>
         </ul>
 
         <div class="sidebar__footer">
@@ -177,6 +180,24 @@
             </section>
 
         </div><!-- /pedidosSection -->
+
+        <!-- ─── SECCIÓN IMÁGENES ─── -->
+        <div id="imagenesSection" style="display:none;">
+
+            <div class="admin-header">
+                <h1>Imágenes de la Portada</h1>
+            </div>
+
+            <p class="imagenes-hint">
+                <i class="ri-information-line"></i>
+                Estas son las 3 fotos del slider de la página principal.
+                Elige un archivo, revisa la vista previa y luego guarda para publicarla.
+            </p>
+
+            <!-- Las tarjetas de cada foto las genera admin.js -->
+            <section class="imagenes-grid" id="imagenesGrid"></section>
+
+        </div><!-- /imagenesSection -->
 
     </main>
 </div>
