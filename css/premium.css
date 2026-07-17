@@ -1,0 +1,398 @@
+/*=====================================================
+PREMIUM.CSS — Capa de pulido visual
+Micro-interacciones, entradas y estados de foco.
+Solo transform / opacity / box-shadow (GPU-friendly).
+Se carga al final de style.css para refinar la cascada.
+=====================================================*/
+
+:root{
+
+    /* Curvas de easing modernas */
+    --ease-out:cubic-bezier(.22,1,.36,1);
+    --ease-spring:cubic-bezier(.34,1.56,.64,1);
+
+    /* Anillo de foco accesible */
+    --focus-ring:0 0 0 3px rgba(141,110,99,.35);
+
+}
+
+/*==========================
+SELECCIÓN DE TEXTO
+==========================*/
+
+::selection{
+    background:rgba(141,110,99,.25);
+    color:var(--black);
+}
+
+/*==========================
+FOCO VISIBLE (accesibilidad)
+Solo con teclado (:focus-visible),
+sin ensuciar el click con mouse
+==========================*/
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible{
+    outline:2px solid transparent; /* mantiene el foco en modo alto contraste */
+    box-shadow:var(--focus-ring);
+    transition:box-shadow .2s ease;
+}
+
+/*==========================
+ENTRADA AL CARGAR LA PÁGINA
+Header + Hero escalonados
+==========================*/
+
+@keyframes navDrop{
+    from{ opacity:0; transform:translateY(-100%); }
+    to{   opacity:1; transform:translateY(0); }
+}
+
+@keyframes riseIn{
+    from{ opacity:0; transform:translateY(26px); }
+    to{   opacity:1; transform:translateY(0); }
+}
+
+@keyframes heroImgIn{
+    from{ opacity:0; transform:scale(.94) translateY(20px); }
+    to{   opacity:1; transform:scale(1) translateY(0); }
+}
+
+/* fill "backwards" (no "both"): al terminar, el header queda sin
+   transform. Si quedara uno aplicado, se volvería el contenedor del
+   menú móvil position:fixed que vive dentro y lo rompería. */
+.header{
+    animation:navDrop .6s var(--ease-out) backwards;
+}
+
+/* Reemplaza la entrada en bloque del hero
+   por una cascada elemento a elemento */
+.hero__content{
+    animation:none;
+}
+
+.hero__tag{        animation:riseIn .7s var(--ease-out) .05s both; }
+.hero__content h1{ animation:riseIn .7s var(--ease-out) .15s both; }
+.hero__content p{  animation:riseIn .7s var(--ease-out) .25s both; }
+.hero__buttons{    animation:riseIn .7s var(--ease-out) .35s both; }
+.hero__stats{      animation:riseIn .7s var(--ease-out) .45s both; }
+.hero__image{      animation:heroImgIn .9s var(--ease-out) .2s both; }
+
+/*==========================
+BOTONES
+==========================*/
+
+.btn{
+    transition:
+        transform .25s var(--ease-spring),
+        box-shadow .3s ease,
+        background .25s ease,
+        color .25s ease;
+}
+
+.btn-primary:hover{
+    box-shadow:0 12px 28px rgba(141,110,99,.35);
+}
+
+.btn:active{
+    transform:translateY(0) scale(.97);
+    transition-duration:.1s;
+}
+
+/*==========================
+NAVBAR
+==========================*/
+
+.cart-button:active,
+.menu-button:active,
+.admin-nav-btn:active{
+    transform:scale(.88);
+    transition-duration:.12s;
+}
+
+.nav__menu a{
+    transition:color .25s ease, transform .2s var(--ease-out);
+}
+
+.nav__menu a:active{
+    transform:scale(.96);
+}
+
+/*==========================
+TARJETAS DE PRODUCTO
+La transición incluye opacity para
+que el fade-up del observer sea suave
+==========================*/
+
+.product{
+    transition:
+        transform .35s var(--ease-out),
+        box-shadow .35s var(--ease-out),
+        opacity .6s ease;
+}
+
+.product:hover{
+    transform:translateY(-10px) scale(1.015);
+}
+
+/* Botón agregar al carrito */
+.product__button{
+    transition:
+        transform .3s var(--ease-spring),
+        background .25s ease,
+        box-shadow .3s ease;
+}
+
+.product__button:hover:not(:disabled){
+    box-shadow:0 8px 20px rgba(141,110,99,.4);
+}
+
+.product__button:active:not(:disabled){
+    transform:scale(.85) rotate(90deg);
+    transition-duration:.12s;
+}
+
+.product__button:disabled{
+    opacity:.45;
+    cursor:not-allowed;
+    box-shadow:none;
+}
+
+/* Stepper de cantidad */
+.product__qty button{
+    transition:
+        background .2s ease,
+        color .2s ease,
+        transform .15s var(--ease-out);
+}
+
+.product__qty button:active{
+    transform:scale(.8);
+}
+
+/*==========================
+CHIPS Y CATEGORÍAS
+==========================*/
+
+.catalog__chips button{
+    transition:
+        background .25s ease,
+        color .25s ease,
+        border-color .25s ease,
+        transform .2s var(--ease-spring),
+        box-shadow .25s ease;
+}
+
+.catalog__chips button:hover{
+    transform:translateY(-2px);
+    box-shadow:var(--shadow-sm);
+}
+
+.catalog__chips button:active{
+    transform:translateY(0) scale(.94);
+}
+
+.category:active{
+    transform:translateY(-4px) scale(.97);
+    transition-duration:.15s;
+}
+
+/*==========================
+BUSCADOR
+==========================*/
+
+.catalog__search input:focus{
+    box-shadow:0 0 0 4px rgba(141,110,99,.18), var(--shadow-md);
+}
+
+/*==========================
+CARRITO (panel lateral)
+==========================*/
+
+.cart{
+    transition:right .45s var(--ease-out);
+}
+
+/* Entrada escalonada de los items */
+@keyframes cartItemIn{
+    from{ opacity:0; transform:translateX(18px); }
+    to{   opacity:1; transform:translateX(0); }
+}
+
+/* fill "backwards": si la animación retuviera el transform final,
+   bloquearía la transición del hover de más abajo */
+.cart-item{
+    animation:cartItemIn .3s var(--ease-out) backwards;
+    transition:transform .25s var(--ease-out), box-shadow .25s ease;
+}
+
+.cart-item:nth-child(2){ animation-delay:.05s; }
+.cart-item:nth-child(3){ animation-delay:.10s; }
+.cart-item:nth-child(4){ animation-delay:.15s; }
+.cart-item:nth-child(5){ animation-delay:.20s; }
+.cart-item:nth-child(n+6){ animation-delay:.25s; }
+
+.cart-item:hover{
+    transform:translateX(-4px);
+    box-shadow:var(--shadow-md);
+}
+
+.quantity button{
+    transition:background .2s ease, color .2s ease, transform .15s ease;
+}
+
+.quantity button:active{
+    transform:scale(.82);
+}
+
+.remove-item{
+    transition:opacity .2s ease, transform .2s ease;
+}
+
+.remove-item:hover{
+    opacity:.75;
+}
+
+.remove-item:active{
+    transform:scale(.94);
+}
+
+/* Vacío del carrito con entrada suave */
+.cart-empty{
+    animation:riseIn .4s var(--ease-out) both;
+}
+
+/*==========================
+MODALES (checkout / admin)
+La animación corre cada vez que
+.modal pasa de display:none a flex
+==========================*/
+
+@keyframes modalIn{
+    from{ opacity:0; transform:translateY(26px) scale(.96); }
+    to{   opacity:1; transform:translateY(0) scale(1); }
+}
+
+.modal.active .modal__box{
+    animation:modalIn .35s var(--ease-out) both;
+}
+
+/*==========================
+TOAST
+Rebote sutil al aparecer
+==========================*/
+
+.cart-toast{
+    transition:opacity .3s ease, transform .45s var(--ease-spring);
+}
+
+/*==========================
+BADGE OFERTA
+Brillo diagonal una sola vez al entrar
+==========================*/
+
+@keyframes badgeShine{
+    from{ transform:translateX(-120%) skewX(-20deg); }
+    to{   transform:translateX(220%) skewX(-20deg); }
+}
+
+.product__badge--oferta{
+    position:absolute;
+    overflow:hidden;
+}
+
+.product__badge--oferta::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    width:40%;
+    background:rgba(255,255,255,.35);
+    animation:badgeShine 1s ease .6s both;
+}
+
+/*==========================
+SCROLL TOP
+Sube al aparecer, no solo fade
+==========================*/
+
+.scroll-top{
+    transform:translateY(14px);
+}
+
+.scroll-top.show{
+    transform:translateY(0);
+}
+
+.scroll-top.show:hover{
+    transform:translateY(-6px) scale(1.05);
+}
+
+.scroll-top:active{
+    transform:scale(.9);
+}
+
+/*==========================
+FOOTER
+==========================*/
+
+.footer__social a{
+    transition:background .25s ease, transform .25s var(--ease-spring);
+}
+
+.footer__social a:active{
+    transform:translateY(-2px) scale(.9);
+}
+
+/*==========================
+IMÁGENES DEL SITIO
+==========================*/
+
+.about__image img{
+    transition:transform .5s var(--ease-out), box-shadow .4s ease;
+}
+
+.about__image:hover img{
+    transform:scale(1.02);
+}
+
+.tiktok__card{
+    transition:transform .3s var(--ease-out), box-shadow .3s ease;
+}
+
+.tiktok__card:hover{
+    transform:translateY(-6px);
+    box-shadow:0 12px 30px rgba(0,0,0,.10);
+}
+
+.contact__cards article{
+    transition:transform .25s var(--ease-out);
+}
+
+.contact__cards article:hover{
+    transform:translateX(6px);
+}
+
+/*==========================
+ACCESIBILIDAD: MOVIMIENTO REDUCIDO
+Si el usuario pide menos movimiento,
+todo queda casi instantáneo
+==========================*/
+
+@media (prefers-reduced-motion: reduce){
+
+    *,
+    *::before,
+    *::after{
+        animation-duration:.01ms !important;
+        animation-iteration-count:1 !important;
+        transition-duration:.01ms !important;
+    }
+
+    html{
+        scroll-behavior:auto !important;
+    }
+
+}

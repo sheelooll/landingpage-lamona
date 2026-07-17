@@ -1,0 +1,657 @@
+/*==================================
+ANIMACIONES GENERALES
+==================================*/
+
+.fade-up{
+
+    opacity:0;
+    
+    transform:translateY(50px);
+    
+    transition:all .8s ease;
+    
+    }
+    
+    .fade-up.show{
+    
+    opacity:1;
+    
+    transform:translateY(0);
+    
+    }
+    
+    
+    
+    .fade-down{
+    
+    opacity:0;
+    
+    transform:translateY(-50px);
+    
+    transition:all .8s ease;
+    
+    }
+    
+    .fade-down.show{
+    
+    opacity:1;
+    
+    transform:translateY(0);
+    
+    }
+    
+    
+    
+    .fade-left{
+    
+    opacity:0;
+    
+    transform:translateX(-60px);
+    
+    transition:all .8s ease;
+    
+    }
+    
+    .fade-left.show{
+    
+    opacity:1;
+    
+    transform:translateX(0);
+    
+    }
+    
+    
+    
+    .fade-right{
+    
+    opacity:0;
+    
+    transform:translateX(60px);
+    
+    transition:all .8s ease;
+    
+    }
+    
+    .fade-right.show{
+    
+    opacity:1;
+    
+    transform:translateX(0);
+    
+    }
+    
+    
+    
+    .zoom{
+    
+    opacity:0;
+    
+    transform:scale(.9);
+    
+    transition:.7s;
+    
+    }
+    
+    .zoom.show{
+    
+    opacity:1;
+    
+    transform:scale(1);
+    
+    }
+    
+    
+    
+    /*==================================
+    BOTONES
+    ==================================*/
+    
+    .btn{
+    
+    position:relative;
+    
+    overflow:hidden;
+    
+    }
+    
+    .btn::before{
+    
+    content:"";
+    
+    position:absolute;
+    
+    top:0;
+    
+    left:-120%;
+    
+    width:60%;
+    
+    height:100%;
+    
+    background:rgba(255,255,255,.25);
+    
+    transform:skewX(-25deg);
+    
+    transition:.7s;
+    
+    }
+    
+    .btn:hover::before{
+    
+    left:140%;
+    
+    }
+    
+    .btn:active{
+    
+    transform:scale(.97);
+    
+    }
+    
+    
+    
+    /*==================================
+    TARJETAS
+    ==================================*/
+    
+    .product{
+    
+    transition:
+    
+    transform .35s,
+    
+    box-shadow .35s;
+    
+    }
+    
+    .product:hover{
+    
+    transform:
+    
+    translateY(-10px)
+    
+    scale(1.02);
+    
+    }
+    
+    
+    
+    /*==================================
+    IMAGEN PRODUCTO
+    ==================================*/
+    
+    .product img{
+    
+    transition:
+    
+    transform .5s ease;
+    
+    }
+    
+    .product:hover img{
+    
+    transform:scale(1.08);
+    
+    }
+    
+    
+    
+    /*==================================
+    ICONOS
+    ==================================*/
+    
+    .category i,
+    
+    .footer__social a,
+    
+    .cart-button,
+    
+    .menu-button{
+    
+    transition:.3s;
+    
+    }
+    
+    .category:hover i{
+    
+    transform:scale(1.2) rotate(5deg);
+    
+    }
+    
+    .footer__social a:hover{
+    
+    transform:translateY(-5px);
+    
+    }
+    
+    .cart-button:hover{
+    
+    transform:translateY(-4px);
+    
+    }
+    
+    .menu-button:hover{
+    
+    transform:rotate(90deg);
+    
+    }
+    
+    
+    
+    /*==================================
+    INPUT
+    ==================================*/
+    
+    input{
+    
+    transition:.3s;
+    
+    }
+    
+    input:focus{
+    
+    transform:scale(1.01);
+    
+    }
+    
+    
+    
+    /*==================================
+    NAVBAR
+    ==================================*/
+    
+    .header{
+    
+    transition:
+    
+    background .35s,
+    
+    box-shadow .35s,
+    
+    padding .35s;
+    
+    }
+    
+    
+    
+    /*==================================
+    LOGO
+    ==================================*/
+    
+    .logo img{
+    
+    transition:.4s;
+    
+    }
+    
+    .logo:hover img{
+    
+    transform:
+    
+    rotate(-8deg)
+    
+    scale(1.08);
+    
+    }
+    
+    
+    
+    /*==================================
+    CARRITO
+    ==================================*/
+    
+    .cart{
+    
+    transition:right .4s ease;
+    
+    }
+    
+    
+    
+    /*==================================
+    OVERLAY
+    ==================================*/
+    
+    .overlay{
+    
+    transition:
+    
+    opacity .35s,
+    
+    visibility .35s;
+    
+    }
+    
+    
+    
+    /*==================================
+    WHATSAPP
+    ==================================*/
+    
+    .floating-whatsapp{
+    
+    animation:
+    
+    pulseWhatsapp
+    
+    2s infinite;
+    
+    }
+    
+    @keyframes pulseWhatsapp{
+    
+    0%{
+    
+    box-shadow:
+    
+    0 0 0 0 rgba(37,211,102,.5);
+    
+    }
+    
+    70%{
+    
+    box-shadow:
+    
+    0 0 0 18px rgba(37,211,102,0);
+    
+    }
+    
+    100%{
+    
+    box-shadow:
+    
+    0 0 0 0 rgba(37,211,102,0);
+    
+    }
+    
+    }
+    
+    
+    
+    /*==================================
+    SCROLL TOP
+    ==================================*/
+    
+    .scroll-top{
+    
+    transition:.35s;
+    
+    }
+    
+    .scroll-top:hover{
+    
+    transform:
+    
+    translateY(-6px)
+    
+    scale(1.05);
+    
+    }
+    
+    
+    
+    /*==================================
+    LOADER
+    ==================================*/
+    
+    .loader{
+    
+    position:fixed;
+    
+    inset:0;
+    
+    background:white;
+    
+    display:flex;
+    
+    align-items:center;
+    
+    justify-content:center;
+    
+    z-index:99999;
+    
+    transition:.5s;
+    
+    }
+    
+    .loader.hidden{
+    
+    opacity:0;
+    
+    visibility:hidden;
+    
+    }
+    
+    .loader span{
+    
+    width:70px;
+    
+    height:70px;
+    
+    border-radius:50%;
+    
+    border:5px solid #eee;
+    
+    border-top-color:var(--primary);
+    
+    animation:spin 1s linear infinite;
+    
+    }
+    
+    @keyframes spin{
+    
+    100%{
+    
+    transform:rotate(360deg);
+    
+    }
+    
+    }
+    
+    
+    
+    /*==================================
+    FLOAT
+    ==================================*/
+    
+    .float{
+    
+    animation:float 4s ease-in-out infinite;
+    
+    }
+    
+    @keyframes float{
+    
+    0%{
+    
+    transform:translateY(0);
+    
+    }
+    
+    50%{
+    
+    transform:translateY(-15px);
+    
+    }
+    
+    100%{
+    
+    transform:translateY(0);
+    
+    }
+    
+    }
+    
+    
+    
+    /*==================================
+    PULSE
+    ==================================*/
+    
+    .pulse{
+    
+    animation:pulse 2s infinite;
+    
+    }
+    
+    @keyframes pulse{
+    
+    0%{
+    
+    transform:scale(1);
+    
+    }
+    
+    50%{
+    
+    transform:scale(1.05);
+    
+    }
+    
+    100%{
+    
+    transform:scale(1);
+    
+    }
+    
+    }
+    
+    
+    
+    /*==================================
+    SHAKE
+    ==================================*/
+    
+    .shake{
+    
+    animation:shake .4s;
+    
+    }
+    
+    @keyframes shake{
+    
+    0%{transform:translateX(0);}
+    25%{transform:translateX(-6px);}
+    50%{transform:translateX(6px);}
+    75%{transform:translateX(-4px);}
+    100%{transform:translateX(0);}
+    
+    }
+    
+    
+    
+    /*==================================
+    BADGE
+    ==================================*/
+    
+    .product__badge{
+    
+    animation:badge .8s;
+    
+    }
+    
+    @keyframes badge{
+    
+    0%{
+    
+    opacity:0;
+    
+    transform:scale(.3);
+    
+    }
+    
+    100%{
+    
+    opacity:1;
+    
+    transform:scale(1);
+    
+    }
+    
+    }
+    
+    
+    
+    /*==================================
+    SKELETON
+    ==================================*/
+    
+    .skeleton{
+    
+    overflow:hidden;
+    
+    position:relative;
+    
+    }
+    
+    .skeleton::before{
+    
+    content:"";
+    
+    position:absolute;
+    
+    top:0;
+    
+    left:-150%;
+    
+    width:60%;
+    
+    height:100%;
+    
+    background:linear-gradient(
+    
+    90deg,
+    
+    transparent,
+    
+    rgba(255,255,255,.7),
+    
+    transparent
+    
+    );
+    
+    animation:skeleton 1.4s infinite;
+    
+    }
+    
+    @keyframes skeleton{
+    
+    100%{
+    
+    left:150%;
+    
+    }
+    
+    }
+    
+    
+    
+    /*==================================
+    SCROLLBAR
+    ==================================*/
+    
+    ::-webkit-scrollbar{
+    
+    width:10px;
+    
+    }
+    
+    ::-webkit-scrollbar-track{
+    
+    background:#f5f5f5;
+    
+    }
+    
+    ::-webkit-scrollbar-thumb{
+    
+    background:var(--primary);
+    
+    border-radius:20px;
+    
+    }
+    
+    ::-webkit-scrollbar-thumb:hover{
+    
+    background:var(--primary-dark);
+    
+    }

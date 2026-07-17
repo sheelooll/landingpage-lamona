@@ -1,0 +1,107 @@
+/*==========================
+CONTACTO
+==========================*/
+
+.contact{
+
+    background:white;
+    
+    }
+    
+    .contact__container{
+    
+    display:grid;
+    
+    grid-template-columns:420px 1fr;
+    
+    gap:60px;
+    
+    align-items:center;
+    
+    }
+    
+    .contact__cards{
+    
+    display:flex;
+    
+    flex-direction:column;
+    
+    gap:20px;
+    
+    margin:35px 0;
+    
+    }
+    
+    .contact__cards article{
+    
+    display:flex;
+    
+    gap:18px;
+    
+    align-items:flex-start;
+    
+    padding:20px;
+    
+    border-radius:20px;
+    
+    background:#fafafa;
+    
+    transition:.3s;
+    
+    border:1px solid var(--border);
+    
+    }
+    
+    .contact__cards article:hover{
+    
+    transform:translateY(-5px);
+    
+    box-shadow:var(--shadow-md);
+    
+    }
+    
+    .contact__cards i{
+    
+    font-size:1.8rem;
+    
+    color:var(--primary);
+    
+    }
+    
+    .contact__map{
+    
+    overflow:hidden;
+    
+    border-radius:30px;
+    
+    box-shadow:var(--shadow-lg);
+    
+    height:500px;
+    
+    }
+    
+    .contact__map iframe{
+    
+    width:100%;
+    
+    height:100%;
+    
+    border:0;
+    
+    }
+    
+    @media(max-width:992px){
+    
+    .contact__container{
+    
+    grid-template-columns:1fr;
+    
+    }
+    
+    .contact__map{
+    
+    height:400px;
+    
+    }
+    
+    }

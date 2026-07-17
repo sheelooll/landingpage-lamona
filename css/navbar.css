@@ -1,0 +1,335 @@
+/*==========================
+NAVBAR
+==========================*/
+
+.header{
+
+    position:fixed;
+    
+    top:0;
+    left:0;
+    
+    width:100%;
+    
+    height:var(--header-height);
+    
+    z-index:1000;
+    
+    transition:.35s;
+    
+    }
+    
+    .header.scrolled{
+    
+    background:rgba(255,255,255,.90);
+    
+    backdrop-filter:blur(18px);
+    
+    -webkit-backdrop-filter:blur(18px);
+    
+    box-shadow:0 8px 25px rgba(0,0,0,.08);
+    
+    }
+    
+    .nav{
+    
+    height:100%;
+    
+    display:flex;
+    
+    align-items:center;
+    
+    justify-content:space-between;
+    
+    }
+    
+    
+    
+    /*==========================
+    LOGO
+    ==========================*/
+    
+    .logo{
+    
+    display:flex;
+    
+    align-items:center;
+    
+    gap:15px;
+    
+    font-size:1rem;
+    
+    font-weight:600;
+    
+    }
+    
+    .logo img{
+    
+    width:58px;
+    
+    height:58px;
+    
+    object-fit:contain;
+    
+    transition:.35s;
+    
+    }
+    
+    .logo:hover img{
+    
+    transform:rotate(-6deg) scale(1.05);
+    
+    }
+    
+    .logo span{
+    
+    display:flex;
+    
+    flex-direction:column;
+    
+    line-height:1.1;
+    
+    }
+    
+    .logo strong{
+    
+    font-size:1.4rem;
+    
+    color:var(--primary);
+    
+    font-family:'Barlow Condensed',sans-serif;
+    
+    letter-spacing:1px;
+    
+    }
+    
+    
+    
+    /*==========================
+    MENU
+    ==========================*/
+    
+    .nav__menu{
+    
+    display:flex;
+    
+    align-items:center;
+    
+    gap:45px;
+    
+    }
+    
+    .nav__menu a{
+    
+    position:relative;
+    
+    font-size:.95rem;
+    
+    font-weight:600;
+    
+    transition:.30s;
+    
+    }
+    
+    .nav__menu a::after{
+    
+    content:"";
+    
+    position:absolute;
+    
+    left:0;
+    bottom:-8px;
+    
+    width:0;
+    
+    height:2px;
+    
+    background:var(--primary);
+    
+    transition:.3s;
+    
+    }
+    
+    .nav__menu a:hover{
+    
+    color:var(--primary);
+    
+    }
+    
+    .nav__menu a:hover::after{
+    
+    width:100%;
+    
+    }
+    
+    
+    
+    /*==========================
+    BOTONES
+    ==========================*/
+    
+    .nav__buttons{
+    
+    display:flex;
+    
+    align-items:center;
+    
+    gap:15px;
+    
+    }
+    
+    .cart-button{
+    
+    position:relative;
+    
+    width:50px;
+    
+    height:50px;
+    
+    border-radius:50%;
+    
+    background:white;
+    
+    box-shadow:var(--shadow-sm);
+    
+    display:flex;
+    
+    align-items:center;
+    
+    justify-content:center;
+    
+    transition:.3s;
+    
+    }
+    
+    .cart-button:hover{
+    
+    transform:translateY(-3px);
+    
+    box-shadow:var(--shadow-md);
+    
+    }
+    
+    .cart-button i{
+    
+    font-size:1.4rem;
+    
+    }
+    
+    #cartCounter{
+    
+    position:absolute;
+    
+    top:-5px;
+    right:-5px;
+    
+    width:22px;
+    
+    height:22px;
+    
+    border-radius:50%;
+    
+    background:#ff3b30;
+    
+    color:white;
+    
+    display:flex;
+    
+    align-items:center;
+    
+    justify-content:center;
+    
+    font-size:.75rem;
+    
+    font-weight:700;
+    
+    }
+    
+    .menu-button{
+    
+    display:none;
+    
+    width:48px;
+    
+    height:48px;
+    
+    border-radius:50%;
+    
+    background:white;
+    
+    box-shadow:var(--shadow-sm);
+    
+    align-items:center;
+    
+    justify-content:center;
+    
+    transition:.3s;
+    
+    }
+    
+    .menu-button i{
+    
+    font-size:1.5rem;
+    
+    }
+    
+    .menu-button:hover{
+    
+    transform:scale(1.08);
+    
+    }
+    
+    
+    
+    /*==========================
+    MENU MOVIL
+    ==========================*/
+    
+    @media(max-width:900px){
+    
+    .menu-button{
+    
+    display:flex;
+    
+    }
+    
+    .nav__menu{
+    
+    position:fixed;
+    
+    top:0;
+    right:-100%;
+    
+    width:300px;
+    
+    height:100vh;
+    
+    background:white;
+    
+    box-shadow:-20px 0 40px rgba(0,0,0,.10);
+    
+    display:flex;
+    
+    flex-direction:column;
+    
+    justify-content:center;
+    
+    gap:40px;
+    
+    transition:.4s;
+    
+    }
+    
+    .nav__menu.active{
+    
+    right:0;
+    
+    }
+    
+    .nav__menu a{
+    
+    font-size:1.1rem;
+    
+    }
+    
+    }

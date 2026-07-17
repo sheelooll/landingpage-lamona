@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administrador | La Mona</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/admin.css">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet">
+</head>
+
+<body>
+
+<!-- ════════════════════════════════════════
+     AUTH OVERLAY (se oculta al autenticarse)
+     ════════════════════════════════════════ -->
+<div id="authOverlay">
+    <div class="auth-box">
+        <div class="auth-logo">
+            <i class="ri-store-3-line"></i>
+            <h2>Panel Admin</h2>
+            <p>Comercializadora La Mona</p>
+        </div>
+        <form id="authForm">
+            <input
+                type="password"
+                id="authPass"
+                placeholder="Clave de acceso"
+                autocomplete="current-password"
+                required>
+            <p id="authError">Clave incorrecta. Intenta de nuevo.</p>
+            <button type="submit" class="btn btn-primary">Ingresar</button>
+        </form>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     LAYOUT PRINCIPAL
+     ════════════════════════════════════════ -->
+<div class="admin">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <h2><i class="ri-store-3-line"></i> Panel</h2>
+        <ul>
+            <li class="active" data-section="productos">
+                <i class="ri-shopping-bag-line"></i> Productos
+            </li>
+            <li data-section="pedidos">
+                <i class="ri-file-list-3-line"></i> Pedidos
+            </li>
+        </ul>
+
+        <div class="sidebar__footer">
+            <button id="logoutBtn" class="btn-logout">
+                <i class="ri-logout-box-line"></i> Cerrar sesión
+            </button>
+        </div>
+    </aside>
+
+    <!-- Contenido principal -->
+    <main class="admin-content">
+
+        <!-- ─── SECCIÓN PRODUCTOS ─── -->
+        <div id="productosSection">
+
+            <div class="admin-header">
+                <h1>Administración de Productos</h1>
+                <button id="nuevoProducto" class="btn btn-primary">
+                    <i class="ri-add-line"></i> Nuevo Producto
+                </button>
+            </div>
+
+            <!-- Formulario -->
+            <section class="admin-form">
+                <form id="productForm">
+                    <input type="hidden" id="productId">
+
+                    <div class="grid-2">
+                        <input id="nombre"    type="text"   placeholder="Nombre del producto" required>
+                        <input id="categoria" type="text"   placeholder="Categoría (ej: Alimentos)" required>
+                    </div>
+
+                    <div class="grid-2">
+                        <input id="precio" type="number" min="0" placeholder="Precio normal ($)" required>
+                        <input id="stock"  type="number" min="0" placeholder="Stock (vacío = ilimitado)">
+                    </div>
+
+                    <!-- Precio mayorista -->
+                    <div class="mayorista-section">
+                        <p class="section-label"><i class="ri-group-line"></i> Precio mayorista (opcional)</p>
+                        <div class="grid-2">
+                            <input id="cantidadMayorista" type="number" min="2" placeholder="Cantidad mínima (ej: 6)">
+                            <input id="precioMayorista"   type="number" min="0" placeholder="Precio c/u por volumen ($)">
+                        </div>
+                        <small class="hint">Ej: "Lleva 6 → $2.100 c/u" — deja en blanco si no aplica</small>
+                    </div>
+
+                    <!-- Imagen -->
+                    <div class="imagen-section">
+                        <label class="upload-label" for="imagenFile">
+                            <i class="ri-image-add-line"></i> Subir imagen desde el dispositivo
+                            <input id="imagenFile" type="file" accept="image/*">
+                        </label>
+                        <input id="imagen" type="text" placeholder="O pega aquí la URL de la imagen">
+                    </div>
+
+                    <textarea id="descripcion" rows="3" placeholder="Descripción del producto"></textarea>
+
+                    <label>
+                        <input id="destacado" type="checkbox"> Producto destacado
+                    </label>
+
+                    <!-- Oferta -->
+                    <label>
+                        <input id="enOferta" type="checkbox"> Producto en oferta
+                    </label>
+                    <div id="precioOfertaGroup" style="display:none;">
+                        <input id="precioOferta" type="number" min="0" placeholder="Precio de oferta ($) — el precio tachado seguirá siendo el normal">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="ri-save-line"></i> Guardar Producto
+                    </button>
+                </form>
+            </section>
+
+            <!-- Buscador -->
+            <section class="admin-search">
+                <input id="buscar" type="text" placeholder="Buscar producto...">
+            </section>
+
+            <!-- Tabla de productos -->
+            <section>
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Imagen</th>
+                            <th>Nombre</th>
+                            <th>Categoría</th>
+                            <th>Precio / Mayorista</th>
+                            <th>Stock</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaProductos"></tbody>
+                </table>
+            </section>
+
+        </div><!-- /productosSection -->
+
+        <!-- ─── SECCIÓN PEDIDOS ─── -->
+        <div id="pedidosSection" style="display:none;">
+
+            <div class="admin-header">
+                <h1>Pedidos Recibidos</h1>
+                <button onclick="admin.limpiarPedidos()" class="btn btn-danger">
+                    <i class="ri-delete-bin-line"></i> Limpiar todo
+                </button>
+            </div>
+
+            <section>
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Cliente</th>
+                            <th>Productos</th>
+                            <th>Total</th>
+                            <th>Entrega</th>
+                            <th>Pago</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaPedidos"></tbody>
+                </table>
+            </section>
+
+        </div><!-- /pedidosSection -->
+
+    </main>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="js/productos.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/firebase-db.js"></script>
+<script src="js/admin.js"></script>
+
+</body>
+</html>

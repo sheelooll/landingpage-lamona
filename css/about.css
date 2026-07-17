@@ -1,0 +1,183 @@
+/*==========================
+NOSOTROS
+==========================*/
+
+.about{
+
+    background:white;
+    
+    }
+    
+    .about__container{
+    
+    display:grid;
+    
+    grid-template-columns:1fr 1fr;
+    
+    align-items:center;
+    
+    gap:80px;
+    
+    }
+    
+    .about__image{
+    
+    position:relative;
+    
+    }
+    
+    .about__image img{
+    
+    width:100%;
+    
+    border-radius:30px;
+    
+    box-shadow:var(--shadow-lg);
+    
+    transition:.4s;
+    
+    }
+    
+    .about__image:hover img{
+    
+    transform:scale(1.03);
+    
+    }
+    
+    .about__image::after{
+    
+    content:"";
+    
+    position:absolute;
+    
+    width:180px;
+    
+    height:180px;
+    
+    right:-25px;
+    
+    bottom:-25px;
+    
+    background:var(--primary);
+    
+    opacity:.08;
+    
+    border-radius:30px;
+    
+    z-index:-1;
+    
+    }
+    
+    .about__content{
+    
+    display:flex;
+    
+    flex-direction:column;
+    
+    justify-content:center;
+    
+    }
+    
+    .about__content p{
+    
+    margin-bottom:35px;
+    
+    font-size:1.05rem;
+    
+    line-height:1.9;
+    
+    }
+    
+    .about__features{
+    
+    display:grid;
+    
+    grid-template-columns:repeat(2,1fr);
+    
+    gap:20px;
+    
+    }
+    
+    .about__features article{
+    
+    display:flex;
+    
+    align-items:center;
+    
+    gap:14px;
+    
+    padding:18px;
+    
+    background:#fafafa;
+    
+    border-radius:18px;
+    
+    transition:.3s;
+    
+    border:1px solid var(--border);
+    
+    }
+    
+    .about__features article:hover{
+    
+    transform:translateY(-6px);
+    
+    box-shadow:var(--shadow-md);
+    
+    border-color:var(--primary);
+    
+    }
+    
+    .about__features i{
+    
+    font-size:1.6rem;
+    
+    color:var(--primary);
+    
+    }
+    
+    .about__features span{
+    
+    font-weight:600;
+    
+    }
+    
+    
+    
+    /*==========================
+    RESPONSIVE
+    ==========================*/
+    
+    @media(max-width:992px){
+    
+    .about__container{
+    
+    grid-template-columns:1fr;
+    
+    gap:50px;
+    
+    }
+    
+    .about__content{
+    
+    text-align:center;
+    
+    }
+    
+    .about__features{
+    
+    grid-template-columns:1fr 1fr;
+    
+    }
+    
+    }
+    
+    @media(max-width:600px){
+    
+    .about__features{
+    
+    grid-template-columns:1fr;
+    
+    }
+    
+    }

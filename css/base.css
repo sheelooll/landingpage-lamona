@@ -1,0 +1,175 @@
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    }
+    
+    html{
+    
+    scroll-behavior:smooth;
+    
+    }
+    
+    body{
+    
+    font-family:'Inter',sans-serif;
+    background:var(--background);
+    color:var(--text);
+    
+    overflow-x:hidden;
+    
+    }
+    
+    h1,h2,h3,h4,h5{
+    
+    font-family:'Barlow Condensed',sans-serif;
+    
+    font-weight:700;
+    
+    line-height:1.1;
+    
+    }
+    
+    p{
+    
+    color:var(--text-light);
+    line-height:1.7;
+    
+    }
+    
+    img{
+    
+    display:block;
+    max-width:100%;
+    
+    }
+    
+    a{
+    
+    text-decoration:none;
+    color:inherit;
+    
+    }
+    
+    ul{
+    
+    list-style:none;
+    
+    }
+    
+    button{
+    
+    cursor:pointer;
+    border:none;
+    background:none;
+    font-family:inherit;
+    
+    }
+    
+    input{
+    
+    font-family:inherit;
+    
+    }
+    
+    .container{
+    
+    width:min(92%,var(--container));
+    
+    margin:auto;
+    
+    }
+    
+    .section{
+    
+    padding:100px 0;
+    
+    }
+    
+    .section__subtitle{
+    
+    display:inline-block;
+    
+    color:var(--primary);
+    
+    font-weight:600;
+    
+    margin-bottom:12px;
+    
+    text-transform:uppercase;
+    
+    letter-spacing:2px;
+    
+    font-size:.9rem;
+    
+    }
+    
+    .section__title{
+    
+    font-size:3rem;
+    
+    margin-bottom:20px;
+    
+    color:var(--black);
+    
+    }
+    
+    .btn{
+    
+    display:inline-flex;
+    
+    align-items:center;
+    
+    justify-content:center;
+    
+    gap:10px;
+    
+    padding:16px 34px;
+    
+    border-radius:50px;
+    
+    font-weight:600;
+    
+    transition:var(--transition);
+    
+    }
+    
+    .btn-primary{
+    
+    background:var(--primary);
+    
+    color:white;
+    
+    }
+    
+    .btn-primary:hover{
+    
+    background:var(--primary-dark);
+    
+    transform:translateY(-3px);
+    
+    }
+    
+    .btn-outline{
+    
+    border:2px solid var(--primary);
+    
+    color:var(--primary);
+    
+    }
+    
+    .btn-outline:hover{
+    
+    background:var(--primary);
+    
+    color:white;
+    
+    }
+    
+    .grid{
+    
+    display:grid;
+    
+    gap:30px;
+    
+    }
