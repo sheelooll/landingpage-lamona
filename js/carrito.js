@@ -279,6 +279,9 @@ function procesarCheckout(e) {
     const direccion = entrega === 'Delivery'
         ? (document.getElementById('direccionEnvio')?.value.trim() || '')
         : '';
+    const horaRetiro = entrega === 'Retiro en tienda'
+        ? (document.getElementById('horaRetiro')?.value.trim() || '')
+        : '';
     const pago     = document.getElementById('metodoPago').value;
 
     // Guardar pedido
@@ -287,6 +290,7 @@ function procesarCheckout(e) {
             cliente: nombre,
             entrega,
             direccion,
+            horaRetiro,
             pago,
             productos: carrito.map(p => ({
                 nombre:    p.nombre,
@@ -316,6 +320,9 @@ function procesarCheckout(e) {
     if (direccion) {
         msg += `%F0%9F%93%8D%20*Direcci%C3%B3n:*%20${encodeURIComponent(direccion)}%0A`;
     }
+    if (horaRetiro) {
+        msg += `%E2%8F%B0%20*Hora%20de%20retiro:*%20${encodeURIComponent(horaRetiro)}%0A`;
+    }
     msg += `%F0%9F%92%B3%20*Pago:*%20${encodeURIComponent(pago)}`;
 
     window.open(`https://wa.me/${TELEFONO}?text=${msg}`, '_blank');
@@ -326,6 +333,8 @@ function procesarCheckout(e) {
     e.target.reset();
     const dg = document.getElementById('direccionGroup');
     if (dg) dg.style.display = 'none';
+    const hg = document.getElementById('horaRetiroGroup');
+    if (hg) hg.style.display = 'none';
 }
 
 /*============================
@@ -342,14 +351,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const checkoutForm = document.getElementById('checkoutForm');
     if (checkoutForm) checkoutForm.addEventListener('submit', procesarCheckout);
 
-    const metodoEntrega  = document.getElementById('metodoEntrega');
-    const direccionGroup = document.getElementById('direccionGroup');
-    if (metodoEntrega && direccionGroup) {
+    const metodoEntrega   = document.getElementById('metodoEntrega');
+    const direccionGroup  = document.getElementById('direccionGroup');
+    const horaRetiroGroup = document.getElementById('horaRetiroGroup');
+    if (metodoEntrega) {
         metodoEntrega.addEventListener('change', () => {
             const esDelivery = metodoEntrega.value === 'Delivery';
-            direccionGroup.style.display = esDelivery ? 'block' : 'none';
+            const esRetiro   = metodoEntrega.value === 'Retiro en tienda';
+            if (direccionGroup) direccionGroup.style.display = esDelivery ? 'block' : 'none';
             const dir = document.getElementById('direccionEnvio');
             if (dir) dir.required = esDelivery;
+            if (horaRetiroGroup) horaRetiroGroup.style.display = esRetiro ? 'block' : 'none';
+            const hora = document.getElementById('horaRetiro');
+            if (hora) hora.required = esRetiro;
         });
     }
 

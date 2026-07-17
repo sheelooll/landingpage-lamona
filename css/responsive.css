@@ -181,13 +181,33 @@ RESPONSIVE
     
     
     /* 768px */
-    
+
     @media (max-width:768px){
-    
+
+    .logo{
+
+    gap:10px;
+
+    }
+
+    .logo img{
+
+    width:52px;
+
+    height:52px;
+
+    }
+
+    .nav__buttons{
+
+    gap:10px;
+
+    }
+
     .section{
-    
+
     padding:70px 0;
-    
+
     }
     
     .section__title{
@@ -265,15 +285,95 @@ RESPONSIVE
     
     
     /* 600px */
-    
+
     @media (max-width:600px){
-    
+
+    .logo{
+
+    gap:8px;
+
+    }
+
+    .logo img{
+
+    width:46px;
+
+    height:46px;
+
+    }
+
+    .logo span{
+
+    font-size:.85rem;
+
+    }
+
+    .logo strong{
+
+    font-size:1.2rem;
+
+    }
+
+    .nav__buttons{
+
+    gap:8px;
+
+    }
+
+    .cart-button{
+
+    width:44px;
+
+    height:44px;
+
+    }
+
+    .cart-button i{
+
+    font-size:1.25rem;
+
+    }
+
+    #cartCounter{
+
+    width:20px;
+
+    height:20px;
+
+    font-size:.7rem;
+
+    }
+
+    .nav__buttons .admin-nav-btn{
+
+    width:38px;
+
+    height:38px;
+
+    font-size:1rem;
+
+    }
+
+    .menu-button{
+
+    width:42px;
+
+    height:42px;
+
+    }
+
+    .menu-button i{
+
+    font-size:1.3rem;
+
+    }
+
     .hero{
-    
+
     min-height:auto;
-    
+
     padding-bottom:60px;
-    
+
     }
     
     .hero h1{
@@ -363,17 +463,23 @@ RESPONSIVE
     }
     
     .logo img{
-    
-    width:48px;
-    
-    height:48px;
-    
+
+    width:42px;
+
+    height:42px;
+
     }
-    
+
+    .logo span{
+
+    font-size:.78rem;
+
+    }
+
     .logo strong{
-    
-    font-size:1.2rem;
-    
+
+    font-size:1.1rem;
+
     }
     
     .product__image{
@@ -438,8 +544,28 @@ RESPONSIVE
     
     
     
+    /* 420px — el logo queda solo con "La Mona" para no chocar con los botones */
+
+    @media (max-width:420px){
+
+    .logo span{
+
+    font-size:0;
+
+    }
+
+    .logo strong{
+
+    font-size:1.15rem;
+
+    }
+
+    }
+
+
+
     /* 360px */
-    
+
     @media (max-width:360px){
     
     .hero h1{

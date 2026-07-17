@@ -32,15 +32,17 @@ NAVBAR
     }
     
     .nav{
-    
+
     height:100%;
-    
+
     display:flex;
-    
+
     align-items:center;
-    
+
     justify-content:space-between;
-    
+
+    gap:12px;
+
     }
     
     
@@ -50,17 +52,21 @@ NAVBAR
     ==========================*/
     
     .logo{
-    
+
     display:flex;
-    
+
     align-items:center;
-    
+
     gap:15px;
-    
+
     font-size:1rem;
-    
+
     font-weight:600;
-    
+
+    flex-shrink:1;
+
+    min-width:0;
+
     }
     
     .logo img{
@@ -81,14 +87,28 @@ NAVBAR
     
     }
     
+    .logo img{
+
+    flex-shrink:0;
+
+    }
+
     .logo span{
-    
+
     display:flex;
-    
+
     flex-direction:column;
-    
+
     line-height:1.1;
-    
+
+    min-width:0;
+
+    white-space:nowrap;
+
+    overflow:hidden;
+
+    text-overflow:ellipsis;
+
     }
     
     .logo strong{
@@ -169,13 +189,15 @@ NAVBAR
     ==========================*/
     
     .nav__buttons{
-    
+
     display:flex;
-    
+
     align-items:center;
-    
+
     gap:15px;
-    
+
+    flex-shrink:0;
+
     }
     
     .cart-button{

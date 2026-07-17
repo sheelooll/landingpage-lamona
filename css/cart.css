@@ -580,6 +580,67 @@ para tener acceso a las vars)
     margin:0;
 }
 
+.modal__label{
+    display:block;
+    font-size:.9rem;
+    font-weight:600;
+    margin-bottom:6px;
+    color:#333;
+}
+
+.modal__hint{
+    font-size:.82rem;
+    color:#888;
+    margin:6px 0 0;
+    display:flex;
+    align-items:center;
+    gap:5px;
+}
+
+.checkout-notice{
+    background:#fff8e6;
+    border:1px solid #f2dfa8;
+    border-radius:10px;
+    padding:12px 14px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+}
+
+.checkout-notice p{
+    margin:0;
+    font-size:.85rem;
+    color:#7a5c00;
+    display:flex;
+    align-items:flex-start;
+    gap:7px;
+    line-height:1.4;
+}
+
+.checkout-notice p i{
+    flex-shrink:0;
+    margin-top:1px;
+}
+
+.cart__notice{
+    font-size:.82rem;
+    color:#7a5c00;
+    background:#fff8e6;
+    border:1px solid #f2dfa8;
+    border-radius:8px;
+    padding:9px 12px;
+    margin:0 0 15px;
+    display:flex;
+    align-items:flex-start;
+    gap:6px;
+    line-height:1.4;
+}
+
+.cart__notice i{
+    flex-shrink:0;
+    margin-top:1px;
+}
+
 @media(max-width:600px){
     .modal__box{
         max-width:100%;

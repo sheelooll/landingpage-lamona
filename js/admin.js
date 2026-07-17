@@ -312,7 +312,7 @@ function renderizarPedidos() {
             <td>${order.cliente}</td>
             <td style="max-width:260px;font-size:.88rem;">${prods}</td>
             <td><strong>$${order.total.toLocaleString('es-CL')}</strong></td>
-            <td>${order.entrega}${order.direccion ? `<br><small>${order.direccion}</small>` : ''}</td>
+            <td>${order.entrega}${order.direccion ? `<br><small>${order.direccion}</small>` : ''}${order.horaRetiro ? `<br><small>⏰ Retiro: ${order.horaRetiro}</small>` : ''}</td>
             <td>${order.pago}</td>
         </tr>`;
     });

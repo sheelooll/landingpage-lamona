@@ -490,6 +490,7 @@
                 <span>Total</span>
                 <strong id="cartTotal">$0</strong>
             </div>
+            <p class="cart__notice"><i class="ri-information-line"></i> Fiambres se laminan en el local: el total final puede variar. Retiro dentro de 24 hrs o se cancela el pedido.</p>
             <button class="btn btn-primary" id="checkoutBtn">Finalizar Compra</button>
         </div>
     </aside>
@@ -515,6 +516,11 @@
                 <div id="direccionGroup" style="display:none;">
                     <input type="text" id="direccionEnvio" placeholder="Dirección de envío completa">
                 </div>
+                <div id="horaRetiroGroup" style="display:none;">
+                    <label for="horaRetiro" class="modal__label">¿A qué hora vienes a retirar?</label>
+                    <input type="text" id="horaRetiro" placeholder="Ej: 15:30 hrs" maxlength="30" autocomplete="off">
+                    <p class="modal__hint"><i class="ri-time-line"></i> Tu pedido queda reservado por 24 horas desde que lo confirmas, luego de eso se cancela.</p>
+                </div>
                 <select id="metodoPago" required>
                     <option value="">Método de pago</option>
                     <option value="Efectivo">Efectivo</option>
@@ -522,6 +528,11 @@
                     <option value="Tarjeta débito">Tarjeta débito</option>
                     <option value="Tarjeta crédito">Tarjeta crédito</option>
                 </select>
+                <div class="checkout-notice">
+                    <p><i class="ri-time-line"></i> El pedido tiene 24 horas para ser retirado, luego de eso se cancela.</p>
+                    <p><i class="ri-knife-line"></i> Los fiambres se laminan en el local, por lo que el total puede variar según el peso final del producto laminado.</p>
+                    <p><i class="ri-bank-card-line"></i> Los pedidos se preparan <strong>solo al recibir la transferencia</strong>.</p>
+                </div>
                 <button type="submit" class="btn btn-primary">
                     <i class="ri-whatsapp-line"></i> Enviar por WhatsApp
                 </button>
