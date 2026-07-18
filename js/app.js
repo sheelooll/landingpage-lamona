@@ -7,8 +7,8 @@
 
 const TELEFONO_WS = '56991024435';
 const TIKTOK_URL  = 'https://www.tiktok.com/@comercializadora.lamona';
-const IG_URL      = 'https://www.instagram.com/comercializadora.lamona/';
-const FB_URL      = 'https://www.facebook.com/comercializadora.lamona';
+const IG_URL      = 'https://www.instagram.com/comercializadoralamona/';
+const FB_URL      = 'https://www.facebook.com/search/top?q=comercializadora%20la%20mona';
 
 document.addEventListener('DOMContentLoaded', () => {
 
