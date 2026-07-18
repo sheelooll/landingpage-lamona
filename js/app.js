@@ -17,7 +17,6 @@ document.addEventListener('DOMContentLoaded', () => {
         overlay.addEventListener('click', () => {
             if (window.carrito) window.carrito.cerrar();
             document.getElementById('checkoutModal')?.classList.remove('active');
-            document.getElementById('adminLoginModal')?.classList.remove('active');
             overlay.classList.remove('active');
         });
     }
@@ -102,49 +101,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    /* ── Modal de login Admin desde index ── */
-    const adminBtn        = document.getElementById('adminLoginBtn');
-    const adminModal      = document.getElementById('adminLoginModal');
-    const adminModalClose = document.getElementById('adminModalClose');
-    const adminLoginForm  = document.getElementById('adminLoginForm');
-
-    if (adminBtn && adminModal) {
-        adminBtn.addEventListener('click', () => {
-            adminModal.classList.add('active');
-            if (overlay) overlay.classList.add('active');
-            document.getElementById('adminPassInput')?.focus();
-        });
-
-        adminModalClose.addEventListener('click', () => {
-            adminModal.classList.remove('active');
-            if (overlay) overlay.classList.remove('active');
-        });
-
-        adminLoginForm.addEventListener('submit', e => {
-            e.preventDefault();
-            const email = document.getElementById('adminEmailInput').value.trim();
-            const pass  = document.getElementById('adminPassInput').value;
-            const err   = document.getElementById('adminPassError');
-
-            if (!window.FirebaseAuth || !window.FirebaseAuth.disponible) {
-                if (err) {
-                    err.textContent = 'Servicio de autenticación no disponible. Revisa tu conexión.';
-                    err.style.display = 'block';
-                }
-                return;
-            }
-
-            // Firebase Auth valida las credenciales; la sesión persiste
-            // (LOCAL) y admin.html la reconoce sin volver a pedir clave.
-            window.FirebaseAuth.login(email, pass)
-                .then(() => { window.location.href = 'admin.html'; })
-                .catch(() => {
-                    if (err) {
-                        err.textContent = 'Credenciales incorrectas. Intenta de nuevo.';
-                        err.style.display = 'block';
-                    }
-                    document.getElementById('adminPassInput').value = '';
-                });
-        });
+    /* ── Acceso admin: el login vive SOLO en admin.html.
+       El botón del candado lleva al panel; si ya hay sesión se entra
+       directo, y si no, las credenciales se piden una única vez ahí.
+       Así se evita el doble ingreso entre páginas. ── */
+    const adminBtn = document.getElementById('adminLoginBtn');
+    if (adminBtn) {
+        adminBtn.addEventListener('click', () => { window.location.href = 'admin.html'; });
     }
 });
