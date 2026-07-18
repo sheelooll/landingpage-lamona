@@ -5,7 +5,6 @@
    modal de login admin desde index.
    =========================================*/
 
-const TELEFONO_WS = '56991024435';
 const TIKTOK_URL  = 'https://www.tiktok.com/@comercializadora.lamona';
 const IG_URL      = 'https://www.instagram.com/comercializadoralamona/';
 const FB_URL      = 'https://www.facebook.com/search/top?q=comercializadora%20la%20mona';
@@ -34,28 +33,52 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    /* ── WhatsApp flotante ── */
-    const floatingWa = document.getElementById('floatingWhatsapp');
-    if (floatingWa) {
-        floatingWa.href   = `https://wa.me/${TELEFONO_WS}`;
-        floatingWa.target = '_blank';
-    }
+    /* ── Contacto (WhatsApp y email, editables desde el admin) ── */
+    function aplicarContacto() {
+        const contacto = getContacto();
 
-    /* ── Botón WhatsApp en sección Contacto ── */
-    const btnWa = document.getElementById('btnWhatsapp');
-    if (btnWa) {
-        btnWa.href   = `https://wa.me/${TELEFONO_WS}`;
-        btnWa.target = '_blank';
-    }
+        // encodeURIComponent evita que un número manipulado rompa la URL
+        const wsNum = encodeURIComponent(contacto.whatsapp);
 
-    /* ── Teléfono de contacto ── */
-    const telEl = document.getElementById('telefonoEmpresa');
-    if (telEl) telEl.textContent = '+56 9 9102 4435';
+        const floatingWa = document.getElementById('floatingWhatsapp');
+        if (floatingWa) {
+            floatingWa.href   = `https://wa.me/${wsNum}`;
+            floatingWa.target = '_blank';
+            floatingWa.rel    = 'noopener noreferrer';
+        }
+
+        const btnWa = document.getElementById('btnWhatsapp');
+        if (btnWa) {
+            btnWa.href   = `https://wa.me/${wsNum}`;
+            btnWa.target = '_blank';
+            btnWa.rel    = 'noopener noreferrer';
+        }
+
+        const emailEl = document.getElementById('emailEmpresa');
+        if (emailEl) emailEl.textContent = contacto.email;
+
+        // El teléfono de contacto es el MISMO número de WhatsApp
+        // (así siempre coinciden y se actualiza desde el admin).
+        const telEl = document.getElementById('telefonoEmpresa');
+        if (telEl) telEl.textContent = formatearTelefono(contacto.whatsapp);
+    }
+    aplicarContacto();
+    document.addEventListener('contactoActualizado', aplicarContacto);
+
+    /* ── Formatea un número de WhatsApp para mostrarlo como teléfono ──
+       Chile: 56 + 9 + 8 dígitos → +56 9 XXXX XXXX */
+    function formatearTelefono(numero) {
+        const d = String(numero || '').replace(/\D/g, '');
+        if (d.length === 11 && d.startsWith('56')) {
+            return `+56 ${d[2]} ${d.slice(3, 7)} ${d.slice(7)}`;
+        }
+        return d ? '+' + d : '';
+    }
 
     /* ── Redes sociales ── */
     const setLink = (id, url) => {
         const el = document.getElementById(id);
-        if (el) { el.href = url; el.target = '_blank'; el.rel = 'noopener'; }
+        if (el) { el.href = url; el.target = '_blank'; el.rel = 'noopener noreferrer'; }
     };
     setLink('tiktokLink',    TIKTOK_URL);
     setLink('instagramLink', IG_URL);
@@ -99,15 +122,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
         adminLoginForm.addEventListener('submit', e => {
             e.preventDefault();
-            const pass = document.getElementById('adminPassInput').value;
-            if (pass === 'lamona2026') {
-                sessionStorage.setItem('adminAuth', 'true');
-                window.location.href = 'admin.html';
-            } else {
-                const err = document.getElementById('adminPassError');
-                if (err) err.style.display = 'block';
-                document.getElementById('adminPassInput').value = '';
+            const email = document.getElementById('adminEmailInput').value.trim();
+            const pass  = document.getElementById('adminPassInput').value;
+            const err   = document.getElementById('adminPassError');
+
+            if (!window.FirebaseAuth || !window.FirebaseAuth.disponible) {
+                if (err) {
+                    err.textContent = 'Servicio de autenticación no disponible. Revisa tu conexión.';
+                    err.style.display = 'block';
+                }
+                return;
             }
+
+            // Firebase Auth valida las credenciales; la sesión persiste
+            // (LOCAL) y admin.html la reconoce sin volver a pedir clave.
+            window.FirebaseAuth.login(email, pass)
+                .then(() => { window.location.href = 'admin.html'; })
+                .catch(() => {
+                    if (err) {
+                        err.textContent = 'Credenciales incorrectas. Intenta de nuevo.';
+                        err.style.display = 'block';
+                    }
+                    document.getElementById('adminPassInput').value = '';
+                });
         });
     }
 });

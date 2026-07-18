@@ -1,0 +1,60 @@
+rules_version = '2';
+
+// ============================================================
+// Reglas de seguridad de Firestore — Comercializadora La Mona
+//
+// Modelo: la tienda es pública (cualquiera puede LEER el
+// catálogo, las imágenes y los datos de contacto), pero solo
+// un administrador AUTENTICADO (Firebase Auth) puede escribir.
+//
+// Excepción: los pedidos los crea el cliente anónimo al hacer
+// checkout, así que se permite CREAR pedidos sin sesión, pero
+// leerlos / modificarlos / borrarlos exige estar autenticado.
+//
+// Para desplegar:
+//   firebase deploy --only firestore:rules
+// o pegar este contenido en Firebase Console → Firestore → Reglas.
+// Requiere: habilitar Authentication → Email/Password y crear
+// el usuario administrador en la consola.
+// ============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Un admin es cualquier usuario con sesión de Firebase Auth.
+    // (Solo existen las cuentas que tú creas en la consola.)
+    function esAdmin() {
+      return request.auth != null;
+    }
+
+    // Catálogo de productos: lectura pública, escritura solo admin.
+    match /productos/{productoId} {
+      allow read: if true;
+      allow write: if esAdmin();
+    }
+
+    // Imágenes del sitio (hero, logo…): lectura pública, escritura solo admin.
+    match /imagenes/{imagenId} {
+      allow read: if true;
+      allow write: if esAdmin();
+    }
+
+    // Configuración (WhatsApp, email…): lectura pública, escritura solo admin.
+    match /config/{docId} {
+      allow read: if true;
+      allow write: if esAdmin();
+    }
+
+    // Pedidos: el cliente los crea en el checkout (sin sesión),
+    // pero solo el admin puede leerlos, editarlos o eliminarlos.
+    match /pedidos/{pedidoId} {
+      allow create: if true;
+      allow read, update, delete: if esAdmin();
+    }
+
+    // Todo lo demás: denegado por defecto.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

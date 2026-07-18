@@ -2,37 +2,76 @@
    ADMIN.JS
    =========================================*/
 
-const ADMIN_PASS = 'lamona2026';
-
 /*============================
-Auth
+Auth (Firebase Auth)
+
+El panel NO renderiza ni carga datos de gestión
+hasta que Firebase confirma una sesión válida
+(onAuthStateChanged). La barrera real son las
+reglas de Firestore; esto es la capa de UI.
 ============================*/
 
-function checkAdminAuth() {
-    if (sessionStorage.getItem('adminAuth') !== 'true') {
-        document.getElementById('authOverlay').style.display = 'flex';
-        document.querySelector('.admin').style.display = 'none';
+let datosCargados = false;
+
+function mostrarPanel() {
+    document.getElementById('authOverlay').style.display = 'none';
+    document.querySelector('.admin').style.display = 'grid';
+    // Cargar los datos sensibles solo una vez, ya autenticados.
+    if (!datosCargados) {
+        datosCargados = true;
+        cargarTabla();
+        renderizarPedidos();
+        renderizarImagenes();
+        cargarFormularioContacto();
+    }
+}
+
+function mostrarLogin() {
+    document.getElementById('authOverlay').style.display = 'flex';
+    document.querySelector('.admin').style.display = 'none';
+}
+
+// Fuente de verdad de la sesión: onAuthStateChanged.
+if (window.FirebaseAuth && window.FirebaseAuth.disponible) {
+    window.FirebaseAuth.onChange(user => {
+        if (user) mostrarPanel();
+        else mostrarLogin();
+    });
+} else {
+    // Sin SDK de Auth no se puede validar: se bloquea el panel.
+    mostrarLogin();
+    const err = document.getElementById('authError');
+    if (err) {
+        err.textContent = 'Servicio de autenticación no disponible. Revisa tu conexión.';
+        err.style.display = 'block';
     }
 }
 
 document.getElementById('authForm').addEventListener('submit', e => {
     e.preventDefault();
-    const pass = document.getElementById('authPass').value;
-    if (pass === ADMIN_PASS) {
-        sessionStorage.setItem('adminAuth', 'true');
-        document.getElementById('authOverlay').style.display = 'none';
-        document.querySelector('.admin').style.display = 'grid';
-        cargarTabla();
-        renderizarPedidos();
-    } else {
-        document.getElementById('authError').style.display = 'block';
-        document.getElementById('authPass').value = '';
-    }
+    const email = document.getElementById('authEmail').value.trim();
+    const pass  = document.getElementById('authPass').value;
+    const err   = document.getElementById('authError');
+
+    if (!window.FirebaseAuth || !window.FirebaseAuth.disponible) return;
+
+    window.FirebaseAuth.login(email, pass)
+        .then(() => { /* onAuthStateChanged mostrará el panel */ })
+        .catch(() => {
+            if (err) {
+                err.textContent = 'Credenciales incorrectas. Intenta de nuevo.';
+                err.style.display = 'block';
+            }
+            document.getElementById('authPass').value = '';
+        });
 });
 
 document.getElementById('logoutBtn').addEventListener('click', () => {
-    sessionStorage.removeItem('adminAuth');
-    window.location.href = 'index.html';
+    if (window.FirebaseAuth && window.FirebaseAuth.disponible) {
+        window.FirebaseAuth.logout().finally(() => { window.location.href = 'index.html'; });
+    } else {
+        window.location.href = 'index.html';
+    }
 });
 
 /*============================
@@ -108,9 +147,9 @@ function filaHTML(producto) {
         : '';
     return `
     <tr>
-        <td><img src="${producto.imagen}" alt="${producto.nombre}"></td>
-        <td>${producto.nombre}${producto.destacado ? ' <span class="badge">Destacado</span>' : ''}${producto.enOferta ? ' <span class="badge badge--oferta">Oferta</span>' : ''}</td>
-        <td>${producto.categoria}</td>
+        <td><img src="${escapeHTML(producto.imagen)}" alt="${escapeHTML(producto.nombre)}"></td>
+        <td>${escapeHTML(producto.nombre)}${producto.destacado ? ' <span class="badge">Destacado</span>' : ''}${producto.enOferta ? ' <span class="badge badge--oferta">Oferta</span>' : ''}</td>
+        <td>${escapeHTML(producto.categoria)}</td>
         <td>$${producto.precio.toLocaleString('es-CL')}${ofertaTxt}${mayoristaTxt}</td>
         <td>${stockLabel}</td>
         <td>
@@ -276,7 +315,8 @@ Sidebar navigation
 const secciones = {
     productos: document.getElementById('productosSection'),
     pedidos:   document.getElementById('pedidosSection'),
-    imagenes:  document.getElementById('imagenesSection')
+    imagenes:  document.getElementById('imagenesSection'),
+    contacto:  document.getElementById('contactoSection')
 };
 
 document.querySelectorAll('.sidebar li[data-section]').forEach(item => {
@@ -306,15 +346,19 @@ function renderizarPedidos() {
     }
 
     orders.forEach(order => {
-        const prods = order.productos.map(p => `${p.nombre} ×${p.cantidad}`).join(', ');
+        // Los pedidos los crea el cliente anónimo: todo campo de texto
+        // se escapa para evitar XSS almacenado contra el panel admin.
+        const prods = order.productos
+            .map(p => `${escapeHTML(p.nombre)} ×${escapeHTML(p.cantidad)}`)
+            .join(', ');
         tbody.innerHTML += `
         <tr>
-            <td>${order.fecha}</td>
-            <td>${order.cliente}</td>
+            <td>${escapeHTML(order.fecha)}</td>
+            <td>${escapeHTML(order.cliente)}</td>
             <td style="max-width:260px;font-size:.88rem;">${prods}</td>
-            <td><strong>$${order.total.toLocaleString('es-CL')}</strong></td>
-            <td>${order.entrega}${order.direccion ? `<br><small>${order.direccion}</small>` : ''}${order.horaRetiro ? `<br><small>⏰ Retiro: ${order.horaRetiro}</small>` : ''}</td>
-            <td>${order.pago}</td>
+            <td><strong>$${Number(order.total).toLocaleString('es-CL')}</strong></td>
+            <td>${escapeHTML(order.entrega)}${order.direccion ? `<br><small>${escapeHTML(order.direccion)}</small>` : ''}${order.horaRetiro ? `<br><small>⏰ Retiro: ${escapeHTML(order.horaRetiro)}</small>` : ''}</td>
+            <td>${escapeHTML(order.pago)}</td>
         </tr>`;
     });
 }
@@ -455,20 +499,42 @@ document.getElementById('imagenesGrid')?.addEventListener('click', e => {
 });
 
 /*============================
+Datos de contacto
+(WhatsApp y email del sitio)
+============================*/
+
+function cargarFormularioContacto() {
+    const contacto = getContacto();
+    const ws = document.getElementById('contactoWhatsapp');
+    const em = document.getElementById('contactoEmail');
+    if (ws) ws.value = contacto.whatsapp;
+    if (em) em.value = contacto.email;
+}
+
+document.getElementById('contactoForm')?.addEventListener('submit', e => {
+    e.preventDefault();
+    saveContacto({
+        whatsapp: document.getElementById('contactoWhatsapp').value,
+        email: document.getElementById('contactoEmail').value
+    });
+    cargarFormularioContacto();
+    alert('Datos de contacto guardados. La tienda ya usa los nuevos datos.');
+});
+
+/*============================
 Inicializar
 ============================*/
 
 document.addEventListener('DOMContentLoaded', () => {
-    checkAdminAuth();
-    cargarTabla();
-    renderizarPedidos();
-    renderizarImagenes();
+    // No se cargan datos aquí: mostrarPanel() lo hace solo tras
+    // confirmar la sesión de Firebase (onAuthStateChanged).
 });
 
 // Sincronización en tiempo real desde Firestore (firebase-db.js)
 document.addEventListener('productosActualizados', cargarTabla);
 document.addEventListener('pedidosActualizados', renderizarPedidos);
 document.addEventListener('imagenesActualizadas', renderizarImagenes);
+document.addEventListener('contactoActualizado', cargarFormularioContacto);
 
 /*============================
 API pública

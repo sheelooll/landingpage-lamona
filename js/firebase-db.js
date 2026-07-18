@@ -34,6 +34,32 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
+    /*============================
+    Autenticación de administrador
+    (Firebase Auth, Email/Password).
+    La verdadera barrera de seguridad son las
+    reglas de Firestore (firestore.rules): sin
+    sesión válida, las escrituras se rechazan.
+    ============================*/
+
+    if (typeof firebase.auth === 'function') {
+        const auth = firebase.auth();
+        // Persistencia LOCAL: la sesión sobrevive al redirect
+        // index → admin.html, así no se pide la clave dos veces.
+        auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(() => {});
+
+        window.FirebaseAuth = {
+            login:   (email, pass) => auth.signInWithEmailAndPassword(email, pass),
+            logout:  () => auth.signOut(),
+            onChange:(cb) => auth.onAuthStateChanged(cb),
+            usuario: () => auth.currentUser,
+            disponible: true
+        };
+    } else {
+        console.warn('[FirebaseDB] SDK de Auth no cargado; el panel admin no podrá iniciar sesión.');
+        window.FirebaseAuth = { disponible: false };
+    }
+
     const esAdmin = !!document.getElementById('tablaPedidos');
     let nubeSembrada = false;
 
@@ -104,15 +130,33 @@
         }).catch(err => avisarErrorAdmin('limpiar los pedidos', err));
     }
 
-    if (esAdmin) {
-        db.collection('pedidos').onSnapshot(snapshot => {
+    // Los pedidos solo se leen con sesión de admin (las reglas de
+    // Firestore exigen auth para leerlos). Por eso la suscripción se
+    // establece dentro de onAuthStateChanged, no al cargar la página:
+    // así el listener nace ya autenticado y no falla por permisos.
+    let pedidosSuscrito = null;
+
+    function suscribirPedidos() {
+        if (pedidosSuscrito) return;
+        pedidosSuscrito = db.collection('pedidos').onSnapshot(snapshot => {
             const pedidos = snapshot.docs
                 .map(d => d.data())
                 .sort((a, b) => Number(b.id) - Number(a.id));
             localStorage.setItem('pedidos', JSON.stringify(pedidos));
             document.dispatchEvent(new Event('pedidosActualizados'));
         }, error => {
-            console.warn('[FirebaseDB] Sin conexión a Firestore (pedidos):', error.message);
+            console.warn('[FirebaseDB] No se pudieron leer los pedidos:', error.message);
+        });
+    }
+
+    function desuscribirPedidos() {
+        if (pedidosSuscrito) { pedidosSuscrito(); pedidosSuscrito = null; }
+    }
+
+    if (esAdmin && typeof firebase.auth === 'function') {
+        firebase.auth().onAuthStateChanged(user => {
+            if (user) suscribirPedidos();
+            else desuscribirPedidos();
         });
     }
 
@@ -142,6 +186,26 @@
             .catch(err => avisarErrorAdmin('restaurar la imagen', err));
     }
 
+    /*============================
+    Contacto (WhatsApp y email):
+    doc 'contacto' en la colección
+    'config'. Nube → caché local +
+    evento, igual que las imágenes.
+    ============================*/
+
+    db.collection('config').doc('contacto').onSnapshot(doc => {
+        if (!doc.exists) return;
+        localStorage.setItem('contactoSitio', JSON.stringify(doc.data()));
+        document.dispatchEvent(new Event('contactoActualizado'));
+    }, error => {
+        console.warn('[FirebaseDB] Sin conexión a Firestore (contacto):', error.message);
+    });
+
+    function guardarContactoNube(contacto) {
+        return db.collection('config').doc('contacto').set(contacto)
+            .catch(err => avisarErrorAdmin('guardar los datos de contacto', err));
+    }
+
     function restaurarImagenesNube() {
         return db.collection('imagenes').get().then(snapshot => {
             const batch = db.batch();
@@ -160,7 +224,8 @@
         limpiarPedidos: limpiarPedidosNube,
         guardarImagen: guardarImagenNube,
         eliminarImagen: eliminarImagenNube,
-        restaurarImagenes: restaurarImagenesNube
+        restaurarImagenes: restaurarImagenesNube,
+        guardarContacto: guardarContactoNube
     };
 
 })();

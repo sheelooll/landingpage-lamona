@@ -155,12 +155,12 @@ function crearTarjetaProducto(producto) {
     <article class="product fade-up">
         <div class="product__image">
             ${badge}
-            <img src="${producto.imagen}" alt="${producto.nombre}" data-producto-id="${producto.id}" loading="lazy">
+            <img src="${escapeHTML(producto.imagen)}" alt="${escapeHTML(producto.nombre)}" data-producto-id="${producto.id}" loading="lazy">
         </div>
         <div class="product__content">
-            <span class="product__category">${producto.categoria}</span>
-            <h3 class="product__title">${producto.nombre}</h3>
-            <p class="product__description">${producto.descripcion}</p>
+            <span class="product__category">${escapeHTML(producto.categoria)}</span>
+            <h3 class="product__title">${escapeHTML(producto.nombre)}</h3>
+            <p class="product__description">${escapeHTML(producto.descripcion)}</p>
             <div class="product__bottom">
                 <div>
                     ${precioHTML}
@@ -359,10 +359,6 @@ function actualizarCategoriaActiva() {
     document.querySelectorAll('.chip').forEach(chip => {
         chip.classList.toggle('active', chip.dataset.categoria === categoriaActual);
     });
-    // También actualizar los botones de categoría de la sección visual
-    document.querySelectorAll('.category[data-category]').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.category === categoriaActual);
-    });
 }
 
 /*============================
@@ -439,15 +435,6 @@ function initCatalogo() {
         cargarProductos();
         renderizarCategorias();
         renderizarProductos();
-
-        // Botones de la sección visual de categorías
-        document.querySelectorAll('.category[data-category]').forEach(btn => {
-            btn.addEventListener('click', () => {
-                filtrarCategoria(btn.dataset.category);
-                const catalogo = document.getElementById('catalogo');
-                if (catalogo) catalogo.scrollIntoView({ behavior: 'smooth' });
-            });
-        });
     }, 300);
 }
 

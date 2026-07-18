@@ -58,34 +58,6 @@
 
     <main>
 
-        <!--================ CATEGORIAS ================-->
-        <section class="categories section">
-            <div class="container">
-                <span class="section__subtitle">Categorías</span>
-                <h2 class="section__title">Encuentra todo más rápido</h2>
-                <div class="categories__grid">
-                    <button class="category active" data-category="Todos">
-                        <i class="ri-apps-2-line"></i><span>Todos</span>
-                    </button>
-                    <button class="category" data-category="Alimentos">
-                        <i class="ri-shopping-basket-line"></i><span>Alimentos</span>
-                    </button>
-                    <button class="category" data-category="Fiambres">
-                        <i class="ri-restaurant-line"></i><span>Fiambres</span>
-                    </button>
-                    <button class="category" data-category="Lácteos">
-                        <i class="ri-goblet-line"></i><span>Lácteos</span>
-                    </button>
-                    <button class="category" data-category="Bebidas">
-                        <i class="ri-cup-line"></i><span>Bebidas</span>
-                    </button>
-                    <button class="category" data-category="Dulces">
-                        <i class="ri-cake-line"></i><span>Dulces</span>
-                    </button>
-                </div>
-            </div>
-        </section>
-
         <!--================ CATALOGO ================-->
         <section class="catalog section" id="catalogo">
             <div class="container">
@@ -143,14 +115,14 @@
             <div>
                 <h4>Síguenos</h4>
                 <div class="footer__social">
-                    <a href="https://www.instagram.com/comercializadoralamona/" id="instagramLink" target="_blank" rel="noopener" title="Instagram">
+                    <a href="https://www.instagram.com/comercializadoralamona/" id="instagramLink" target="_blank" rel="noopener noreferrer" title="Instagram">
                         <i class="ri-instagram-line"></i>
                     </a>
-                    <a href="" id="facebookLink" target="_blank" rel="noopener" title="Facebook">
+                    <a href="" id="facebookLink" target="_blank" rel="noopener noreferrer" title="Facebook">
                         <i class="ri-facebook-circle-line"></i>
                     </a>
                     <a href="https://www.tiktok.com/@comercializadora.lamona" id="tiktokLink"
-                       target="_blank" rel="noopener" title="TikTok"
+                       target="_blank" rel="noopener noreferrer" title="TikTok"
                        style="display:inline-flex;align-items:center;justify-content:center;">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.27 6.27 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.78a4.85 4.85 0 0 1-1.01-.09z"/>
@@ -207,14 +179,10 @@
                     <input type="text" id="horaRetiro" placeholder="Ej: 15:30 hrs" maxlength="30" autocomplete="off">
                     <p class="modal__hint"><i class="ri-time-line"></i> Tu pedido queda reservado por 24 horas desde que lo confirmas, luego de eso se cancela.</p>
                 </div>
-                <select id="metodoPago" required>
-                    <option value="">Método de pago</option>
-                    <option value="Efectivo">Efectivo</option>
-                    <option value="Transferencia bancaria">Transferencia bancaria</option>
-                    <option value="Tarjeta débito">Tarjeta débito</option>
-                    <option value="Tarjeta crédito">Tarjeta crédito</option>
-                </select>
+                <!-- Único método de pago: transferencia bancaria -->
+                <input type="hidden" id="metodoPago" value="Transferencia bancaria">
                 <div class="checkout-notice">
+                    <p><i class="ri-bank-line"></i> Método de pago: <strong>Transferencia bancaria</strong> (único medio de pago disponible).</p>
                     <p><i class="ri-time-line"></i> El pedido tiene 24 horas para ser retirado, luego de eso se cancela.</p>
                     <p><i class="ri-knife-line"></i> Los fiambres se laminan en el local, por lo que el total puede variar según el peso final del producto laminado.</p>
                     <p><i class="ri-bank-card-line"></i> Los pedidos se preparan <strong>solo al recibir la transferencia</strong>.</p>
@@ -259,8 +227,15 @@
     </button>
 
     <!-- Scripts -->
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"
+            integrity="sha384-ZaR6mWzmJtrRibZ1Vm7SoHFr8OXjyAuGAXalGDKqbxFT18oi/z+oZLIRFkpeNor1"
+            crossorigin="anonymous"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"
+            integrity="sha384-I1LYojsZ5RM1cOda44Z2h42Qa6YfsQ1XkXxREnhp4ueYBR/4d1pG1K+NZM537Vsj"
+            crossorigin="anonymous"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"
+            integrity="sha384-Ke0FJhH7LyRqDxZ0wt+/OXV38yfQVu7g9VPEEGjYmB4RVOY/ta04uecRhsMwT7V3"
+            crossorigin="anonymous"></script>
     <script src="js/productos.js"></script>
     <script src="js/storage.js"></script>
     <script src="js/firebase-db.js"></script>

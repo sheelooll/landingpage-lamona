@@ -2,8 +2,6 @@
    CARRITO.JS
 ====================================*/
 
-const TELEFONO = '56991024435';
-
 let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
 
 const cart        = document.getElementById('cart');
@@ -177,10 +175,10 @@ function renderizarCarrito() {
 
         cartItems.innerHTML += `
         <article class="cart-item">
-            <img src="${producto.imagen}" alt="${producto.nombre}">
+            <img src="${escapeHTML(producto.imagen)}" alt="${escapeHTML(producto.nombre)}">
             <div class="cart-item__info">
                 <div>
-                    <div class="cart-item__title">${producto.nombre}</div>
+                    <div class="cart-item__title">${escapeHTML(producto.nombre)}</div>
                     <div class="cart-item__price${esMayoreo ? ' mayoreo' : esOfertaUI ? ' oferta' : ''}">
                         $${pEfectivo.toLocaleString('es-CL')} c/u
                     </div>
@@ -325,7 +323,9 @@ function procesarCheckout(e) {
     }
     msg += `%F0%9F%92%B3%20*Pago:*%20${encodeURIComponent(pago)}`;
 
-    window.open(`https://wa.me/${TELEFONO}?text=${msg}`, '_blank');
+    // Número de WhatsApp configurable desde el panel admin (storage.js)
+    const wsNum = encodeURIComponent(getContacto().whatsapp);
+    window.open(`https://wa.me/${wsNum}?text=${msg}`, '_blank', 'noopener,noreferrer');
 
     document.getElementById('checkoutModal').classList.remove('active');
     setOverlay(false);
