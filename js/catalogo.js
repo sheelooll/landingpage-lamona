@@ -8,7 +8,7 @@ let categoriaActual = 'Todos';
 let textoBusqueda = '';
 
 // Paginación
-const PRODUCTOS_POR_PAGINA = 12;
+const PRODUCTOS_POR_PAGINA = 20;
 let paginaActual = 1;
 
 const productsContainer  = document.getElementById('productsContainer');
@@ -45,7 +45,7 @@ function renderizarProductos(lista = productosFiltrados) {
 
     ocultarSinResultados();
 
-    // Solo se pinta la página actual (12 productos)
+    // Solo se pinta la página actual (20 productos)
     const totalPaginas = Math.ceil(lista.length / PRODUCTOS_POR_PAGINA);
     paginaActual = Math.min(Math.max(paginaActual, 1), totalPaginas);
     const inicio = (paginaActual - 1) * PRODUCTOS_POR_PAGINA;
@@ -59,7 +59,7 @@ function renderizarProductos(lista = productosFiltrados) {
 }
 
 /*============================
-Paginación (12 por página, sin recargar)
+Paginación (20 por página, sin recargar)
 ============================*/
 
 function renderizarPaginacion(totalPaginas) {
@@ -137,6 +137,13 @@ function crearTarjetaProducto(producto) {
             ? `<small class="product__stock-count">Stock: ${stockNum}</small>`
             : '';
 
+    const promo = (producto.precioPromo && producto.cantidadPromo)
+        ? `<div class="product__promo">
+               <i class="ri-price-tag-2-line"></i>
+               ${producto.cantidadPromo} x <strong>$${Number(producto.precioPromo).toLocaleString('es-CL')}</strong>
+           </div>`
+        : '';
+
     const mayorista = (producto.precioMayorista && producto.cantidadMayorista)
         ? `<div class="product__mayorista">
                <i class="ri-group-line"></i>
@@ -164,6 +171,7 @@ function crearTarjetaProducto(producto) {
             <div class="product__bottom">
                 <div>
                     ${precioHTML}
+                    ${promo}
                     ${mayorista}
                     ${stockLabel}
                 </div>
@@ -337,11 +345,22 @@ Chips de categoría (dentro del catálogo)
 function renderizarCategorias() {
     if (!chipsContainer) return;
     chipsContainer.innerHTML = '';
-    const cats = ['Todos', ...new Set(productos.map(p => p.categoria))];
+    // Categorías administradas desde el panel admin (storage.js) más las
+    // que aún usen los productos, por si quedó alguna antigua sin registrar
+    const administradas = typeof getCategorias === 'function' ? getCategorias() : [];
+    const cats = ['Todos', ...new Set([
+        ...administradas,
+        ...productos.map(p => p.categoria).filter(Boolean)
+    ])];
+    // Si la categoría filtrada ya no existe (la eliminaron), se vuelve a 'Todos'
+    if (!cats.includes(categoriaActual)) {
+        categoriaActual = 'Todos';
+        aplicarFiltros();
+    }
     cats.forEach(cat => {
         chipsContainer.innerHTML += `
-        <button class="chip ${cat === categoriaActual ? 'active' : ''}" data-categoria="${cat}">
-            ${cat}
+        <button class="chip ${cat === categoriaActual ? 'active' : ''}" data-categoria="${escapeHTML(cat)}">
+            ${escapeHTML(cat)}
         </button>`;
     });
     agregarEventosCategorias();
@@ -410,6 +429,7 @@ Escuchar cambios externos
 
 window.addEventListener('storage', recargarCatalogo);
 document.addEventListener('productosActualizados', recargarCatalogo);
+document.addEventListener('categoriasActualizadas', renderizarCategorias);
 
 /*============================
 Búsqueda: evento input

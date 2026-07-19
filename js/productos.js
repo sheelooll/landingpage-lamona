@@ -3,7 +3,14 @@ function obtenerProductos() {
 }
 
 function guardarProductos(lista) {
-    localStorage.setItem('productos', JSON.stringify(lista));
+    try {
+        localStorage.setItem('productos', JSON.stringify(lista));
+    } catch (e) {
+        // Cuota de localStorage llena (demasiadas imágenes en base64):
+        // se avisa en vez de fallar en silencio; la nube igual se intenta.
+        alert('No se pudo guardar la caché local (espacio lleno). Los cambios se intentarán guardar en la nube igualmente.');
+        console.error('[productos] localStorage lleno:', e);
+    }
     if (window.FirebaseDB) window.FirebaseDB.guardarProductos(lista);
 }
 

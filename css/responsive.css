@@ -394,22 +394,64 @@ RESPONSIVE
     
     }
     
+    /* En celular el catálogo va a 2 productos por fila,
+       con tarjetas compactas para que quepan bien */
     .products{
-    
-    grid-template-columns:1fr;
-    
+
+    grid-template-columns:repeat(2,1fr);
+
+    gap:14px;
+
     }
-    
+
+    .product__image{
+
+    height:160px;
+
+    }
+
+    .product__content{
+
+    padding:14px;
+
+    }
+
+    .product__title{
+
+    font-size:1.05rem;
+
+    margin-bottom:8px;
+
+    }
+
+    .product__description{
+
+    font-size:.82rem;
+
+    margin-bottom:12px;
+
+    }
+
+    .product__button{
+
+    width:44px;
+
+    height:44px;
+
+    font-size:1rem;
+
+    }
+
     .categories__grid{
-    
+
     grid-template-columns:1fr;
-    
+
     }
-    
+
     .catalog__search{
-    
+
     width:100%;
-    
+
     }
     
     .footer{
@@ -483,21 +525,21 @@ RESPONSIVE
     }
     
     .product__image{
-    
-    height:220px;
-    
+
+    height:150px;
+
     }
-    
+
     .product__content{
-    
-    padding:18px;
-    
+
+    padding:12px;
+
     }
-    
+
     .product__price{
-    
-    font-size:1.5rem;
-    
+
+    font-size:1.35rem;
+
     }
     
     .cart-item{

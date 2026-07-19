@@ -45,6 +45,30 @@ function clearOrders() {
 }
 
 /*============================
+Categorías del catálogo, editables desde
+el panel admin. localStorage es la caché;
+la nube (config/categorias) es la fuente
+de verdad vía firebase-db.js.
+============================*/
+
+function getCategorias() {
+    const guardadas = JSON.parse(localStorage.getItem('categorias'));
+    if (Array.isArray(guardadas)) return guardadas;
+    // Sin lista guardada aún: se derivan de los productos existentes
+    const productos = JSON.parse(localStorage.getItem('productos')) || [];
+    return [...new Set(productos.map(p => p.categoria).filter(Boolean))];
+}
+
+function saveCategorias(lista) {
+    const limpias = [...new Set(lista.map(c => String(c).trim()).filter(Boolean))]
+        .sort((a, b) => a.localeCompare(b, 'es'));
+    localStorage.setItem('categorias', JSON.stringify(limpias));
+    if (window.FirebaseDB) window.FirebaseDB.guardarCategorias(limpias);
+    document.dispatchEvent(new Event('categoriasActualizadas'));
+    return limpias;
+}
+
+/*============================
 Datos de contacto (WhatsApp y email),
 editables desde el panel admin.
 ============================*/

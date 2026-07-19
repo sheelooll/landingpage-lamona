@@ -48,6 +48,15 @@
             padding:4px 8px; width:fit-content;
         }
         .product__mayorista i { font-size:.95rem; }
+
+        /* ── Promo por pack en tarjeta (ej: 3 x $1.000) ── */
+        .product__promo {
+            display:flex; align-items:center; gap:5px;
+            font-size:.82rem; color:#16a34a; font-weight:700;
+            margin-top:4px; background:#ecfdf3; border-radius:6px;
+            padding:4px 8px; width:fit-content;
+        }
+        .product__promo i { font-size:.95rem; }
         .product__stock.agotado {
             display:inline-block; font-size:.78rem; font-weight:700;
             color:#dc2626; background:#fee2e2; border-radius:5px;
@@ -119,8 +128,10 @@
         }
         .mayoreo-label { color:#8D6E63; background:#f9f4f2; }
         .oferta-label  { color:#dc2626; background:#fee2e2; }
+        .promo-label   { color:#16a34a; background:#ecfdf3; }
         .cart-item__price.mayoreo { color:#8D6E63; }
         .cart-item__price.oferta  { color:#dc2626; }
+        .cart-item__price.promo   { color:#16a34a; }
 
         /* ── Selector de cantidad en tarjeta ── */
         .product__cart-area {

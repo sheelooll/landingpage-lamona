@@ -23,6 +23,8 @@ function mostrarPanel() {
         renderizarPedidos();
         renderizarImagenes();
         cargarFormularioContacto();
+        renderizarCategoriasAdmin();
+        cargarSelectCategorias();
     }
 }
 
@@ -96,6 +98,8 @@ const enOferta          = document.getElementById('enOferta');
 const precioOferta      = document.getElementById('precioOferta');
 const cantidadMayorista = document.getElementById('cantidadMayorista');
 const precioMayorista   = document.getElementById('precioMayorista');
+const cantidadPromo     = document.getElementById('cantidadPromo');
+const precioPromo       = document.getElementById('precioPromo');
 
 /*============================
 Vista previa imagen
@@ -112,17 +116,22 @@ imagen.addEventListener('input', () => {
 
 preview.onerror = () => { preview.style.display = 'none'; };
 
-// Subida de archivo → base64
-imagenFile.addEventListener('change', e => {
+// Subida de archivo → base64 redimensionado.
+// Las fotos de celular pesan varios MB y superan el límite de
+// 1 MB por documento de Firestore (por eso "no quedaban guardadas"):
+// se comprimen igual que las fotos de portada antes de usarlas.
+imagenFile.addEventListener('change', async e => {
     const file = e.target.files[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = ev => {
-        imagen.value = ev.target.result;
-        preview.src = ev.target.result;
+    try {
+        const dataUrl = await redimensionarFoto(file);
+        imagen.value = dataUrl;
+        preview.src = dataUrl;
         preview.style.display = 'block';
-    };
-    reader.readAsDataURL(file);
+    } catch {
+        alert('No se pudo leer la imagen. Intenta con otro archivo.');
+        imagenFile.value = '';
+    }
 });
 
 // Mostrar/ocultar precio de oferta según checkbox
@@ -145,12 +154,15 @@ function filaHTML(producto) {
     const mayoristaTxt = (producto.precioMayorista && producto.cantidadMayorista)
         ? `<br><small style="color:#8D6E63">${producto.cantidadMayorista} unid → $${Number(producto.precioMayorista).toLocaleString('es-CL')} c/u</small>`
         : '';
+    const promoTxt = (producto.precioPromo && producto.cantidadPromo)
+        ? `<br><small style="color:#16a34a;font-weight:700;">${producto.cantidadPromo} x $${Number(producto.precioPromo).toLocaleString('es-CL')}</small>`
+        : '';
     return `
     <tr>
         <td><img src="${escapeHTML(producto.imagen)}" alt="${escapeHTML(producto.nombre)}"></td>
         <td>${escapeHTML(producto.nombre)}${producto.destacado ? ' <span class="badge">Destacado</span>' : ''}${producto.enOferta ? ' <span class="badge badge--oferta">Oferta</span>' : ''}</td>
         <td>${escapeHTML(producto.categoria)}</td>
-        <td>$${producto.precio.toLocaleString('es-CL')}${ofertaTxt}${mayoristaTxt}</td>
+        <td>$${producto.precio.toLocaleString('es-CL')}${ofertaTxt}${promoTxt}${mayoristaTxt}</td>
         <td>${stockLabel}</td>
         <td>
             <div class="actions">
@@ -169,6 +181,10 @@ function cargarTabla() {
     productos = obtenerProductos();
     tablaProductos.innerHTML = '';
     productos.forEach(p => { tablaProductos.innerHTML += filaHTML(p); });
+    // Las categorías dependen de los productos (conteo de usos y
+    // categorías derivadas), así que se refrescan junto con la tabla
+    renderizarCategoriasAdmin();
+    cargarSelectCategorias();
 }
 
 /*============================
@@ -190,6 +206,12 @@ Guardar / Editar producto
 productForm.addEventListener('submit', e => {
     e.preventDefault();
 
+    // La promo por pack necesita ambos datos para funcionar
+    if ((cantidadPromo.value.trim() === '') !== (precioPromo.value.trim() === '')) {
+        alert('Para la promo por pack completa la cantidad Y el precio, o deja ambos en blanco.');
+        return;
+    }
+
     const producto = {
         id: productId.value === '' ? generarId() : Number(productId.value),
         nombre: nombre.value.trim(),
@@ -202,7 +224,9 @@ productForm.addEventListener('submit', e => {
         enOferta: enOferta.checked,
         precioOferta: precioOferta.value.trim() === '' ? null : Number(precioOferta.value),
         precioMayorista: precioMayorista.value.trim() === '' ? null : Number(precioMayorista.value),
-        cantidadMayorista: cantidadMayorista.value.trim() === '' ? null : Number(cantidadMayorista.value)
+        cantidadMayorista: cantidadMayorista.value.trim() === '' ? null : Number(cantidadMayorista.value),
+        precioPromo: precioPromo.value.trim() === '' ? null : Number(precioPromo.value),
+        cantidadPromo: cantidadPromo.value.trim() === '' ? null : Number(cantidadPromo.value)
     };
 
     if (productId.value === '') {
@@ -239,6 +263,8 @@ function editarProducto(id) {
     document.getElementById('precioOfertaGroup').style.display = producto.enOferta ? 'block' : 'none';
     cantidadMayorista.value  = producto.cantidadMayorista || '';
     precioMayorista.value    = producto.precioMayorista || '';
+    cantidadPromo.value      = producto.cantidadPromo || '';
+    precioPromo.value        = producto.precioPromo || '';
 
     if (producto.imagen) {
         preview.src = producto.imagen;
@@ -280,6 +306,94 @@ buscar.addEventListener('input', function () {
 });
 
 /*============================
+Categorías (crear / eliminar).
+La lista vive en localStorage 'categorias'
+y se sincroniza con Firestore (config/categorias).
+El catálogo público arma sus chips de filtro
+a partir de esta misma lista.
+============================*/
+
+// Lista guardada + categorías que aún usan los productos
+// (por si quedó alguna antigua no registrada)
+function todasLasCategorias() {
+    return [...new Set([
+        ...getCategorias(),
+        ...productos.map(p => p.categoria).filter(Boolean)
+    ])].sort((a, b) => a.localeCompare(b, 'es'));
+}
+
+function renderizarCategoriasAdmin() {
+    const lista = document.getElementById('listaCategorias');
+    if (!lista) return;
+
+    const cats = todasLasCategorias();
+    if (cats.length === 0) {
+        lista.innerHTML = '<p class="categorias-vacio">Aún no hay categorías. Crea la primera con el formulario de arriba.</p>';
+        return;
+    }
+
+    lista.innerHTML = cats.map(cat => {
+        const usos = productos.filter(p => p.categoria === cat).length;
+        return `
+        <div class="categoria-item">
+            <span class="categoria-item__nombre"><i class="ri-price-tag-3-line"></i> ${escapeHTML(cat)}</span>
+            <small class="categoria-item__usos">${usos} producto${usos === 1 ? '' : 's'}</small>
+            <button class="btn-delete" data-cat="${escapeHTML(cat)}" title="Eliminar categoría">
+                <i class="ri-delete-bin-line"></i>
+            </button>
+        </div>`;
+    }).join('');
+}
+
+// Select de categoría del formulario de producto
+function cargarSelectCategorias() {
+    if (!categoria) return;
+    const seleccionada = categoria.value;
+    const cats = todasLasCategorias();
+    categoria.innerHTML = '<option value="" disabled selected>Categoría…</option>' +
+        cats.map(c => `<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`).join('');
+    if (seleccionada && cats.includes(seleccionada)) categoria.value = seleccionada;
+}
+
+document.getElementById('categoriaForm')?.addEventListener('submit', e => {
+    e.preventDefault();
+    const input = document.getElementById('categoriaNueva');
+    const nombreCat = input.value.trim();
+    if (!nombreCat) return;
+
+    const existentes = todasLasCategorias();
+    if (existentes.some(c => c.toLowerCase() === nombreCat.toLowerCase())) {
+        alert('Esa categoría ya existe.');
+        return;
+    }
+    // Se guardan también las derivadas de los productos para que
+    // la primera escritura deje la lista completa en la nube
+    saveCategorias([...existentes, nombreCat]);
+    input.value = '';
+    input.focus();
+});
+
+document.getElementById('listaCategorias')?.addEventListener('click', e => {
+    const btn = e.target.closest('button[data-cat]');
+    if (!btn) return;
+    const cat = btn.dataset.cat;
+
+    const usos = productos.filter(p => p.categoria === cat).length;
+    if (usos > 0) {
+        alert(`No se puede eliminar "${cat}": la usan ${usos} producto${usos === 1 ? '' : 's'}.\nCambia primero esos productos a otra categoría.`);
+        return;
+    }
+    if (!confirm(`¿Eliminar la categoría "${cat}"?`)) return;
+    saveCategorias(todasLasCategorias().filter(c => c !== cat));
+});
+
+// saveCategorias y la sincronización con Firestore disparan este evento
+document.addEventListener('categoriasActualizadas', () => {
+    renderizarCategoriasAdmin();
+    cargarSelectCategorias();
+});
+
+/*============================
 Generar ID
 ============================*/
 
@@ -313,10 +427,11 @@ Sidebar navigation
 ============================*/
 
 const secciones = {
-    productos: document.getElementById('productosSection'),
-    pedidos:   document.getElementById('pedidosSection'),
-    imagenes:  document.getElementById('imagenesSection'),
-    contacto:  document.getElementById('contactoSection')
+    productos:  document.getElementById('productosSection'),
+    categorias: document.getElementById('categoriasSection'),
+    pedidos:    document.getElementById('pedidosSection'),
+    imagenes:   document.getElementById('imagenesSection'),
+    contacto:   document.getElementById('contactoSection')
 };
 
 document.querySelectorAll('.sidebar li[data-section]').forEach(item => {
@@ -370,14 +485,18 @@ function limpiarPedidos() {
 }
 
 /*============================
-Imágenes de la portada
-(las 3 fotos del slider del index)
+Imágenes del index: las 3 fotos del
+slider principal y las 2 del slider
+de la sección "Nosotros". Cada una
+declara su archivo original propio.
 ============================*/
 
 const FOTOS_PORTADA = [
-    { clave: 'hero-slide-1', titulo: 'Foto principal 1' },
-    { clave: 'hero-slide-2', titulo: 'Foto 2' },
-    { clave: 'hero-slide-3', titulo: 'Foto 3' }
+    { clave: 'hero-slide-1',     titulo: 'Foto principal 1',   original: 'hero1.png' },
+    { clave: 'hero-slide-2',     titulo: 'Foto 2',             original: 'hero1.png' },
+    { clave: 'hero-slide-3',     titulo: 'Foto 3',             original: 'hero1.png' },
+    { clave: 'nosotros-slide-1', titulo: 'Nosotros — foto 1',  original: 'logo2.png' },
+    { clave: 'nosotros-slide-2', titulo: 'Nosotros — foto 2',  original: 'logo3.JPG' }
 ];
 const FOTO_ORIGINAL = 'hero1.png';
 const FOTO_MAX_LADO = 1000;
@@ -391,7 +510,8 @@ function obtenerImagenesSitio() {
 }
 
 function fotoActual(clave) {
-    return obtenerImagenesSitio()[clave] || FOTO_ORIGINAL;
+    const item = FOTOS_PORTADA.find(f => f.clave === clave);
+    return obtenerImagenesSitio()[clave] || (item && item.original) || FOTO_ORIGINAL;
 }
 
 function redimensionarFoto(archivo) {

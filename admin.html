@@ -53,6 +53,9 @@
             <li class="active" data-section="productos">
                 <i class="ri-shopping-bag-line"></i> Productos
             </li>
+            <li data-section="categorias">
+                <i class="ri-price-tag-3-line"></i> Categorías
+            </li>
             <li data-section="pedidos">
                 <i class="ri-file-list-3-line"></i> Pedidos
             </li>
@@ -90,8 +93,11 @@
                     <input type="hidden" id="productId">
 
                     <div class="grid-2">
-                        <input id="nombre"    type="text"   placeholder="Nombre del producto" required>
-                        <input id="categoria" type="text"   placeholder="Categoría (ej: Alimentos)" required>
+                        <input id="nombre" type="text" placeholder="Nombre del producto" required>
+                        <!-- Las opciones las genera admin.js desde la sección Categorías -->
+                        <select id="categoria" required>
+                            <option value="" disabled selected>Categoría…</option>
+                        </select>
                     </div>
 
                     <div class="grid-2">
@@ -107,6 +113,16 @@
                             <input id="precioMayorista"   type="number" min="0" placeholder="Precio c/u por volumen ($)">
                         </div>
                         <small class="hint">Ej: "Lleva 6 → $2.100 c/u" — deja en blanco si no aplica</small>
+                    </div>
+
+                    <!-- Promo por pack (ej: 3 x $1.000) -->
+                    <div class="mayorista-section">
+                        <p class="section-label"><i class="ri-price-tag-2-line"></i> Promo por pack (opcional)</p>
+                        <div class="grid-2">
+                            <input id="cantidadPromo" type="number" min="2" placeholder="Cantidad del pack (ej: 3)">
+                            <input id="precioPromo"   type="number" min="0" placeholder="Precio total del pack ($) (ej: 1000)">
+                        </div>
+                        <small class="hint">Ej: "3 x $1.000" — el carrito cobra cada pack completo a ese precio y las unidades sueltas a precio normal</small>
                     </div>
 
                     <!-- Imagen -->
@@ -162,6 +178,34 @@
 
         </div><!-- /productosSection -->
 
+        <!-- ─── SECCIÓN CATEGORÍAS ─── -->
+        <div id="categoriasSection" style="display:none;">
+
+            <div class="admin-header">
+                <h1>Categorías del Catálogo</h1>
+            </div>
+
+            <p class="imagenes-hint">
+                <i class="ri-information-line"></i>
+                Estas categorías aparecen como filtros de búsqueda en el catálogo
+                y como opciones al crear un producto. Solo se pueden eliminar
+                categorías sin productos asociados.
+            </p>
+
+            <section class="admin-form">
+                <form id="categoriaForm" class="categoria-form">
+                    <input id="categoriaNueva" type="text" placeholder="Nueva categoría (ej: Mascotas)" maxlength="40" required>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="ri-add-line"></i> Crear
+                    </button>
+                </form>
+            </section>
+
+            <!-- La lista la genera admin.js -->
+            <section class="categorias-lista" id="listaCategorias"></section>
+
+        </div><!-- /categoriasSection -->
+
         <!-- ─── SECCIÓN PEDIDOS ─── -->
         <div id="pedidosSection" style="display:none;">
 
@@ -199,7 +243,8 @@
 
             <p class="imagenes-hint">
                 <i class="ri-information-line"></i>
-                Estas son las 3 fotos del slider de la página principal.
+                Estas son las fotos de los sliders de la página principal:
+                las 3 del slider grande y las 2 de la sección "Nosotros".
                 Elige un archivo, revisa la vista previa y luego guarda para publicarla.
             </p>
 

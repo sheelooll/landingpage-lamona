@@ -72,6 +72,33 @@ function precioEfectivo(item) {
 }
 
 /*============================
+Promo por pack (ej: 3 x $1.000):
+aplica si el ítem la tiene, alcanza la
+cantidad y no rige el precio mayorista
+(el mayoreo mantiene su prioridad).
+============================*/
+
+function promoAplica(item) {
+    const esMayoreo = !!(item.precioMayorista && item.cantidadMayorista
+                       && item.cantidad >= item.cantidadMayorista);
+    return !esMayoreo && !!(item.precioPromo && item.cantidadPromo
+                          && item.cantidad >= item.cantidadPromo);
+}
+
+/*============================
+Subtotal de un ítem. Con promo:
+packs completos al precio del pack,
+unidades sueltas al precio unitario.
+============================*/
+
+function subtotalItem(item) {
+    if (!promoAplica(item)) return precioEfectivo(item) * item.cantidad;
+    const packs = Math.floor(item.cantidad / item.cantidadPromo);
+    const resto = item.cantidad % item.cantidadPromo;
+    return packs * item.precioPromo + resto * precioEfectivo(item);
+}
+
+/*============================
 Buscar producto en localStorage
 ============================*/
 
@@ -111,6 +138,8 @@ function agregarAlCarrito(id, cantidad = 1) {
             enOferta:         !!(producto.enOferta && producto.precioOferta),
             precioMayorista:  producto.precioMayorista  || null,
             cantidadMayorista:producto.cantidadMayorista|| null,
+            precioPromo:      producto.precioPromo      || null,
+            cantidadPromo:    producto.cantidadPromo    || null,
             imagen:           producto.imagen,
             cantidad:         cantidad
         });
@@ -159,7 +188,8 @@ function renderizarCarrito() {
         const pEfectivo  = precioEfectivo(producto);
         const esMayoreo  = !!(producto.precioMayorista && producto.cantidadMayorista
                             && producto.cantidad >= producto.cantidadMayorista);
-        const esOfertaUI = !esMayoreo && !!(producto.enOferta && producto.precioOferta);
+        const esPromo    = promoAplica(producto);
+        const esOfertaUI = !esMayoreo && !esPromo && !!(producto.enOferta && producto.precioOferta);
 
         // Etiqueta de precio especial
         let precioBadge = '';
@@ -167,11 +197,20 @@ function renderizarCarrito() {
             precioBadge = `<div class="cart-item__badge mayoreo-label">
                                <i class="ri-group-line"></i> precio mayoreo
                            </div>`;
+        } else if (esPromo) {
+            precioBadge = `<div class="cart-item__badge promo-label">
+                               <i class="ri-price-tag-2-line"></i> promo ${producto.cantidadPromo} x $${Number(producto.precioPromo).toLocaleString('es-CL')}
+                           </div>`;
         } else if (esOfertaUI) {
             precioBadge = `<div class="cart-item__badge oferta-label">
                                <i class="ri-price-tag-3-line"></i> en oferta
                            </div>`;
         }
+
+        // Con promo el precio unitario no es uniforme: se muestra el subtotal
+        const precioLinea = esPromo
+            ? `$${subtotalItem(producto).toLocaleString('es-CL')}`
+            : `$${pEfectivo.toLocaleString('es-CL')} c/u`;
 
         cartItems.innerHTML += `
         <article class="cart-item">
@@ -179,8 +218,8 @@ function renderizarCarrito() {
             <div class="cart-item__info">
                 <div>
                     <div class="cart-item__title">${escapeHTML(producto.nombre)}</div>
-                    <div class="cart-item__price${esMayoreo ? ' mayoreo' : esOfertaUI ? ' oferta' : ''}">
-                        $${pEfectivo.toLocaleString('es-CL')} c/u
+                    <div class="cart-item__price${esMayoreo ? ' mayoreo' : esPromo ? ' promo' : esOfertaUI ? ' oferta' : ''}">
+                        ${precioLinea}
                     </div>
                     ${precioBadge}
                 </div>
@@ -240,7 +279,7 @@ Totales
 ============================*/
 
 function calcularTotal() {
-    return carrito.reduce((total, p) => total + precioEfectivo(p) * p.cantidad, 0);
+    return carrito.reduce((total, p) => total + subtotalItem(p), 0);
 }
 
 function actualizarTotal() {
@@ -294,8 +333,9 @@ function procesarCheckout(e) {
                 nombre:    p.nombre,
                 cantidad:  p.cantidad,
                 precio:    precioEfectivo(p),
-                subtotal:  precioEfectivo(p) * p.cantidad,
+                subtotal:  subtotalItem(p),
                 mayoreo:   !!(p.precioMayorista && p.cantidadMayorista && p.cantidad >= p.cantidadMayorista),
+                promo:     promoAplica(p),
                 enOferta:  !!(p.enOferta && p.precioOferta)
             })),
             total: calcularTotal()
@@ -307,11 +347,13 @@ function procesarCheckout(e) {
     msg += `*Pedido%20de%20${encodeURIComponent(nombre)}*%0A%0A`;
     msg += `%F0%9F%93%A6%20*Productos:*%0A`;
     carrito.forEach(p => {
-        const pe = precioEfectivo(p);
-        const tag = (p.precioMayorista && p.cantidadMayorista && p.cantidad >= p.cantidadMayorista)
+        const esMayoreo = !!(p.precioMayorista && p.cantidadMayorista && p.cantidad >= p.cantidadMayorista);
+        const tag = esMayoreo
             ? '%20%E2%80%94%20precio%20mayoreo'
-            : (p.enOferta && p.precioOferta ? '%20%E2%80%94%20oferta' : '');
-        msg += `%E2%80%A2%20${encodeURIComponent(p.nombre)}%20x${p.cantidad}%20%E2%86%92%20%24${(pe * p.cantidad).toLocaleString('es-CL')}${tag}%0A`;
+            : promoAplica(p)
+                ? `%20%E2%80%94%20${encodeURIComponent(`promo ${p.cantidadPromo} x $${Number(p.precioPromo).toLocaleString('es-CL')}`)}`
+                : (p.enOferta && p.precioOferta ? '%20%E2%80%94%20oferta' : '');
+        msg += `%E2%80%A2%20${encodeURIComponent(p.nombre)}%20x${p.cantidad}%20%E2%86%92%20%24${subtotalItem(p).toLocaleString('es-CL')}${tag}%0A`;
     });
     msg += `%0A%F0%9F%92%B5%20*Total:%20%24${calcularTotal().toLocaleString('es-CL')}*%0A`;
     msg += `%0A%F0%9F%9A%9A%20*Entrega:*%20${encodeURIComponent(entrega)}%0A`;

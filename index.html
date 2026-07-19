@@ -97,13 +97,22 @@
         <!--================ NOSOTROS ================-->
         <section class="about section" id="nosotros">
             <div class="container about__container">
-                <div class="about__image">
-                    <img src="logo.png" alt="Comercializadora La Mona" data-img-key="nosotros">
+                <!-- Slider "Nosotros": misma mecánica que el slider del hero -->
+                <div class="about__image hero-slider about-slider">
+                    <div class="hero-slide active">
+                        <img src="logo2.png" alt="Comercializadora La Mona" data-img-key="nosotros-slide-1">
+                    </div>
+                    <div class="hero-slide">
+                        <img src="logo3.JPG" alt="Nuestra tienda" data-img-key="nosotros-slide-2" loading="lazy">
+                    </div>
+                    <button class="hero-slider__arrow hero-slider__arrow--prev" aria-label="Anterior">&#10094;</button>
+                    <button class="hero-slider__arrow hero-slider__arrow--next" aria-label="Siguiente">&#10095;</button>
+                    <div class="hero-slider__dots"></div>
                 </div>
                 <div class="about__content">
                     <span class="section__subtitle">Sobre Nosotros</span>
                     <h2 class="section__title">Calidad, buenos precios y atención personalizada.</h2>
-                    <p>En Comercializadora La Mona ofrecemos una gran variedad de productos para el hogar, limpieza, alimentos, mascotas, papelería y mucho más. Trabajamos tanto para clientes particulares como para compras al por mayor.</p>
+                    <p>En Comercializadora La Mona ofrecemos una gran variedad de productos para el hogar. Trabajamos tanto para clientes particulares como para compras al por mayor.</p>
                     <div class="about__features">
                         <article><i class="ri-checkbox-circle-fill"></i><span>Ve nuestro catálogo</span></article>
                         <article><i class="ri-checkbox-circle-fill"></i><span>Agrega productos a tu carrito</span></article>

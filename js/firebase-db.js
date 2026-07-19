@@ -99,15 +99,30 @@
     Productos: local → nube
     ============================*/
 
+    // Comparación estable (claves ordenadas) para detectar cambios reales
+    function huella(obj) {
+        if (obj === null || typeof obj !== 'object') return JSON.stringify(obj);
+        return '{' + Object.keys(obj).sort().map(k => JSON.stringify(k) + ':' + huella(obj[k])).join(',') + '}';
+    }
+
     function guardarProductosNube(lista) {
         const coleccion = db.collection('productos');
         return coleccion.get().then(snapshot => {
             const batch = db.batch();
             const idsNuevos = new Set(lista.map(p => String(p.id)));
+            const existentes = {};
             snapshot.docs.forEach(doc => {
                 if (!idsNuevos.has(doc.id)) batch.delete(doc.ref);
+                else existentes[doc.id] = huella(doc.data());
             });
-            lista.forEach(p => batch.set(coleccion.doc(String(p.id)), p));
+            // Solo se escriben los productos nuevos o modificados: con
+            // imágenes en base64, reescribir todo superaría el límite
+            // de 10 MB por lote de Firestore.
+            lista.forEach(p => {
+                if (existentes[String(p.id)] !== huella(p)) {
+                    batch.set(coleccion.doc(String(p.id)), p);
+                }
+            });
             return batch.commit();
         }).catch(err => avisarErrorAdmin('guardar los productos', err));
     }
@@ -206,6 +221,26 @@
             .catch(err => avisarErrorAdmin('guardar los datos de contacto', err));
     }
 
+    /*============================
+    Categorías del catálogo: doc
+    'categorias' en la colección
+    'config'. Nube → caché local +
+    evento, igual que el contacto.
+    ============================*/
+
+    db.collection('config').doc('categorias').onSnapshot(doc => {
+        if (!doc.exists) return;
+        localStorage.setItem('categorias', JSON.stringify(doc.data().lista || []));
+        document.dispatchEvent(new Event('categoriasActualizadas'));
+    }, error => {
+        console.warn('[FirebaseDB] Sin conexión a Firestore (categorías):', error.message);
+    });
+
+    function guardarCategoriasNube(lista) {
+        return db.collection('config').doc('categorias').set({ lista })
+            .catch(err => avisarErrorAdmin('guardar las categorías', err));
+    }
+
     function restaurarImagenesNube() {
         return db.collection('imagenes').get().then(snapshot => {
             const batch = db.batch();
@@ -225,7 +260,8 @@
         guardarImagen: guardarImagenNube,
         eliminarImagen: eliminarImagenNube,
         restaurarImagenes: restaurarImagenesNube,
-        guardarContacto: guardarContactoNube
+        guardarContacto: guardarContactoNube,
+        guardarCategorias: guardarCategoriasNube
     };
 
 })();

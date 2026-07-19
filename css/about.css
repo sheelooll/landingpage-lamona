@@ -145,9 +145,50 @@ NOSOTROS
     
     
     /*==========================
+    SLIDER "NOSOTROS"
+    (usa la mecánica .hero-slider;
+    aquí solo se ajusta al layout
+    de la sección About)
+    ==========================*/
+
+    .about__image.about-slider{
+
+    height:480px;
+
+    border-radius:30px;
+
+    overflow:hidden;
+
+    box-shadow:var(--shadow-lg);
+
+    background:rgba(141,110,99,.06);
+
+    }
+
+    /* el contenedor ya recorta y da sombra:
+       la imagen interna no necesita radio ni hover */
+    .about__image.about-slider img{
+
+    height:100%;
+
+    object-fit:cover;
+
+    border-radius:0;
+
+    box-shadow:none;
+
+    }
+
+    .about__image.about-slider:hover img{
+
+    transform:none;
+
+    }
+
+    /*==========================
     RESPONSIVE
     ==========================*/
-    
+
     @media(max-width:992px){
     
     .about__container{
@@ -173,11 +214,17 @@ NOSOTROS
     }
     
     @media(max-width:600px){
-    
+
     .about__features{
-    
+
     grid-template-columns:1fr;
-    
+
     }
-    
+
+    .about__image.about-slider{
+
+    height:320px;
+
+    }
+
     }
