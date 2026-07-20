@@ -68,7 +68,14 @@ function precioEfectivo(item) {
     if (item.enOferta && item.precioOferta) {
         return item.precioOferta;
     }
-    return item.precio;
+    if (item.precio != null) return item.precio;
+    // Sin precio unitario: las unidades sueltas se cobran al precio
+    // mayorista o al prorrateo del pack, según lo que tenga el producto
+    if (item.precioMayorista) return item.precioMayorista;
+    if (item.precioPromo && item.cantidadPromo) {
+        return Math.round(item.precioPromo / item.cantidadPromo);
+    }
+    return 0;
 }
 
 /*============================
@@ -342,32 +349,35 @@ function procesarCheckout(e) {
         });
     }
 
-    // Armar mensaje WhatsApp
-    let msg = `Hola%20%F0%9F%91%8B%0A%0A`;
-    msg += `*Pedido%20de%20${encodeURIComponent(nombre)}*%0A%0A`;
-    msg += `%F0%9F%93%A6%20*Productos:*%0A`;
+    // Armar mensaje WhatsApp: se escribe como texto plano (con los
+    // emojis reales) y se codifica UNA sola vez al final. Codificar a
+    // mano por partes provocaba dobles codificaciones y los emojis
+    // llegaban como %F0%9F... en vez de mostrarse.
+    let texto = 'Hola 👋\n\n';
+    texto += `*Pedido de ${nombre}*\n\n`;
+    texto += '📦 *Productos:*\n';
     carrito.forEach(p => {
         const esMayoreo = !!(p.precioMayorista && p.cantidadMayorista && p.cantidad >= p.cantidadMayorista);
         const tag = esMayoreo
-            ? '%20%E2%80%94%20precio%20mayoreo'
+            ? ' — precio mayoreo'
             : promoAplica(p)
-                ? `%20%E2%80%94%20${encodeURIComponent(`promo ${p.cantidadPromo} x $${Number(p.precioPromo).toLocaleString('es-CL')}`)}`
-                : (p.enOferta && p.precioOferta ? '%20%E2%80%94%20oferta' : '');
-        msg += `%E2%80%A2%20${encodeURIComponent(p.nombre)}%20x${p.cantidad}%20%E2%86%92%20%24${subtotalItem(p).toLocaleString('es-CL')}${tag}%0A`;
+                ? ` — promo ${p.cantidadPromo} x $${Number(p.precioPromo).toLocaleString('es-CL')}`
+                : (p.enOferta && p.precioOferta ? ' — oferta' : '');
+        texto += `• ${p.nombre} x${p.cantidad} → $${subtotalItem(p).toLocaleString('es-CL')}${tag}\n`;
     });
-    msg += `%0A%F0%9F%92%B5%20*Total:%20%24${calcularTotal().toLocaleString('es-CL')}*%0A`;
-    msg += `%0A%F0%9F%9A%9A%20*Entrega:*%20${encodeURIComponent(entrega)}%0A`;
+    texto += `\n💵 *Total: $${calcularTotal().toLocaleString('es-CL')}*\n`;
+    texto += `\n🚚 *Entrega:* ${entrega}\n`;
     if (direccion) {
-        msg += `%F0%9F%93%8D%20*Direcci%C3%B3n:*%20${encodeURIComponent(direccion)}%0A`;
+        texto += `📍 *Dirección:* ${direccion}\n`;
     }
     if (horaRetiro) {
-        msg += `%E2%8F%B0%20*Hora%20de%20retiro:*%20${encodeURIComponent(horaRetiro)}%0A`;
+        texto += `⏰ *Hora de retiro:* ${horaRetiro}\n`;
     }
-    msg += `%F0%9F%92%B3%20*Pago:*%20${encodeURIComponent(pago)}`;
+    texto += `💳 *Pago:* ${pago}`;
 
     // Número de WhatsApp configurable desde el panel admin (storage.js)
     const wsNum = encodeURIComponent(getContacto().whatsapp);
-    window.open(`https://wa.me/${wsNum}?text=${msg}`, '_blank', 'noopener,noreferrer');
+    window.open(`https://wa.me/${wsNum}?text=${encodeURIComponent(texto)}`, '_blank', 'noopener,noreferrer');
 
     document.getElementById('checkoutModal').classList.remove('active');
     setOverlay(false);

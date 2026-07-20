@@ -137,12 +137,7 @@ function crearTarjetaProducto(producto) {
             ? `<small class="product__stock-count">Stock: ${stockNum}</small>`
             : '';
 
-    const promo = (producto.precioPromo && producto.cantidadPromo)
-        ? `<div class="product__promo">
-               <i class="ri-price-tag-2-line"></i>
-               ${producto.cantidadPromo} x <strong>$${Number(producto.precioPromo).toLocaleString('es-CL')}</strong>
-           </div>`
-        : '';
+    const tienePromo = !!(producto.precioPromo && producto.cantidadPromo);
 
     const mayorista = (producto.precioMayorista && producto.cantidadMayorista)
         ? `<div class="product__mayorista">
@@ -151,12 +146,27 @@ function crearTarjetaProducto(producto) {
            </div>`
         : '';
 
-    const precioHTML = esOferta
-        ? `<div class="product__price-group">
-               <del class="product__price-old">$${Number(producto.precio).toLocaleString('es-CL')}</del>
+    // El precio unitario es opcional. Si hay promo por pack, el pack es
+    // el precio protagonista (grande) y el unitario queda como nota chica.
+    let precioHTML;
+    if (tienePromo) {
+        const unitario = esOferta ? producto.precioOferta : producto.precio;
+        precioHTML = `
+           <div class="product__promo product__promo--main">
+               <i class="ri-price-tag-2-line"></i>
+               ${producto.cantidadPromo} x <strong>$${Number(producto.precioPromo).toLocaleString('es-CL')}</strong>
+           </div>
+           ${unitario != null ? `<div class="product__price-unit">$${Number(unitario).toLocaleString('es-CL')} c/u</div>` : ''}`;
+    } else if (esOferta) {
+        precioHTML = `<div class="product__price-group">
+               ${producto.precio != null ? `<del class="product__price-old">$${Number(producto.precio).toLocaleString('es-CL')}</del>` : ''}
                <div class="product__price product__price--oferta">$${Number(producto.precioOferta).toLocaleString('es-CL')}</div>
-           </div>`
-        : `<div class="product__price">$${Number(producto.precio).toLocaleString('es-CL')}</div>`;
+           </div>`;
+    } else {
+        precioHTML = producto.precio != null
+            ? `<div class="product__price">$${Number(producto.precio).toLocaleString('es-CL')}</div>`
+            : '';
+    }
 
     return `
     <article class="product fade-up">
@@ -171,7 +181,6 @@ function crearTarjetaProducto(producto) {
             <div class="product__bottom">
                 <div>
                     ${precioHTML}
-                    ${promo}
                     ${mayorista}
                     ${stockLabel}
                 </div>
@@ -385,7 +394,13 @@ Ordenar
 ============================*/
 
 function ordenarPrecio(modo = 'asc') {
-    productosFiltrados.sort((a, b) => modo === 'asc' ? a.precio - b.precio : b.precio - a.precio);
+    // Sin precio unitario se ordena por el precio mayorista o el prorrateo del pack
+    const precioOrden = p => p.precio
+        ?? p.precioMayorista
+        ?? (p.precioPromo && p.cantidadPromo ? p.precioPromo / p.cantidadPromo : 0);
+    productosFiltrados.sort((a, b) => modo === 'asc'
+        ? precioOrden(a) - precioOrden(b)
+        : precioOrden(b) - precioOrden(a));
     renderizarProductos(productosFiltrados);
 }
 

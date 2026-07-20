@@ -162,7 +162,7 @@ function filaHTML(producto) {
         <td><img src="${escapeHTML(producto.imagen)}" alt="${escapeHTML(producto.nombre)}"></td>
         <td>${escapeHTML(producto.nombre)}${producto.destacado ? ' <span class="badge">Destacado</span>' : ''}${producto.enOferta ? ' <span class="badge badge--oferta">Oferta</span>' : ''}</td>
         <td>${escapeHTML(producto.categoria)}</td>
-        <td>$${producto.precio.toLocaleString('es-CL')}${ofertaTxt}${promoTxt}${mayoristaTxt}</td>
+        <td>${producto.precio != null ? '$' + Number(producto.precio).toLocaleString('es-CL') : '—'}${ofertaTxt}${promoTxt}${mayoristaTxt}</td>
         <td>${stockLabel}</td>
         <td>
             <div class="actions">
@@ -212,11 +212,26 @@ productForm.addEventListener('submit', e => {
         return;
     }
 
+    // El precio mayorista también necesita ambos datos
+    if ((cantidadMayorista.value.trim() === '') !== (precioMayorista.value.trim() === '')) {
+        alert('Para el precio mayorista completa la cantidad Y el precio, o deja ambos en blanco.');
+        return;
+    }
+
+    // Basta con que exista al menos un tipo de precio (unitario, mayoreo o pack)
+    const tieneUnitario = precio.value.trim() !== '';
+    const tieneMayoreo  = precioMayorista.value.trim() !== '';
+    const tienePromo    = precioPromo.value.trim() !== '';
+    if (!tieneUnitario && !tieneMayoreo && !tienePromo) {
+        alert('Ingresa al menos un precio: normal, mayorista o promo por pack.');
+        return;
+    }
+
     const producto = {
         id: productId.value === '' ? generarId() : Number(productId.value),
         nombre: nombre.value.trim(),
         categoria: categoria.value.trim(),
-        precio: Number(precio.value),
+        precio: precio.value.trim() === '' ? null : Number(precio.value),
         stock: stockInput.value.trim() === '' ? null : Number(stockInput.value),
         imagen: imagen.value.trim(),
         descripcion: descripcion.value.trim(),
@@ -253,7 +268,7 @@ function editarProducto(id) {
     productId.value          = producto.id;
     nombre.value             = producto.nombre;
     categoria.value          = producto.categoria;
-    precio.value             = producto.precio;
+    precio.value             = producto.precio ?? '';
     stockInput.value         = (producto.stock === null || producto.stock === undefined) ? '' : producto.stock;
     imagen.value             = producto.imagen || '';
     descripcion.value        = producto.descripcion || '';
