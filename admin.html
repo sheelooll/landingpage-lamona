@@ -132,10 +132,9 @@
                                 <i class="ri-image-add-line"></i> Subir desde galería
                                 <input id="imagenFile" type="file" accept="image/*">
                             </label>
-                            <label class="upload-label upload-label--camera" for="cameraFile">
+                            <button type="button" id="btnCameraTop" class="upload-label upload-label--camera">
                                 <i class="ri-camera-line"></i> Tomar foto
-                                <input id="cameraFile" type="file" accept="image/*" capture="environment">
-                            </label>
+                            </button>
                         </div>
                         <input id="imagen" type="text" placeholder="O pega aquí la URL de la imagen">
                     </div>
@@ -385,10 +384,9 @@
                             <i class="ri-image-add-line"></i> Subir imagen
                             <input id="editImagenFile" type="file" accept="image/*">
                         </label>
-                        <label class="upload-label upload-label--camera" for="editCameraFile">
+                        <button type="button" id="btnCameraModal" class="upload-label upload-label--camera">
                             <i class="ri-camera-line"></i> Tomar foto
-                            <input id="editCameraFile" type="file" accept="image/*" capture="environment">
-                        </label>
+                        </button>
                     </div>
                     <input id="editImagen" type="text" placeholder="O pega aquí la URL de la imagen">
                     <img id="editImagenPreview" style="width:90px;height:90px;object-fit:cover;border-radius:10px;margin-top:8px;display:none;" alt="Preview">

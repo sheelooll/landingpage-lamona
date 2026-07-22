@@ -94,7 +94,6 @@ const precio            = document.getElementById('precio');
 const stockInput        = document.getElementById('stock');
 const imagen            = document.getElementById('imagen');
 const imagenFile        = document.getElementById('imagenFile');
-const cameraFile        = document.getElementById('cameraFile');
 const descripcion       = document.getElementById('descripcion');
 const destacado         = document.getElementById('destacado');
 const enOferta          = document.getElementById('enOferta');
@@ -124,26 +123,45 @@ preview.onerror = () => { preview.style.display = 'none'; };
 // Las fotos de celular pesan varios MB y superan el límite de
 // 1 MB por documento de Firestore (por eso "no quedaban guardadas"):
 // se comprimen igual que las fotos de portada antes de usarlas.
-async function aplicarFotoProducto(file, inputRef) {
+// Aplica una foto (comprimida) al formulario de nuevo producto
+async function aplicarFotoProducto(file) {
     try {
         const dataUrl = await redimensionarFoto(file);
         imagen.value = dataUrl;
         preview.src = dataUrl;
         preview.style.display = 'block';
     } catch {
-        alert('No se pudo leer la imagen. Intenta con otro archivo.');
-        inputRef.value = '';
+        alert('No se pudo procesar la imagen. Intenta de nuevo.');
     }
 }
 
 imagenFile.addEventListener('change', e => {
     const file = e.target.files[0];
-    if (file) aplicarFotoProducto(file, imagenFile);
+    if (file) aplicarFotoProducto(file);
 });
 
-cameraFile.addEventListener('change', e => {
-    const file = e.target.files[0];
-    if (file) aplicarFotoProducto(file, cameraFile);
+// Crea un input[file][capture] dinámico para abrir la cámara.
+// Evita el bug de iOS Safari donde display:none impide que el
+// change event dispare correctamente después de la captura.
+function abrirCamara(callback) {
+    const inp = document.createElement('input');
+    inp.type    = 'file';
+    inp.accept  = 'image/*';
+    inp.setAttribute('capture', 'environment');
+    inp.style.cssText = 'position:fixed;opacity:0;pointer-events:none;top:0;left:0;';
+    document.body.appendChild(inp);
+    inp.addEventListener('change', () => {
+        const file = inp.files[0];
+        document.body.removeChild(inp);
+        if (file) callback(file);
+    });
+    // Limpia el input si el usuario cancela sin tomar foto
+    inp.addEventListener('cancel', () => document.body.removeChild(inp));
+    inp.click();
+}
+
+document.getElementById('btnCameraTop')?.addEventListener('click', () => {
+    abrirCamara(file => aplicarFotoProducto(file));
 });
 
 // Mostrar/ocultar precio de oferta según checkbox
@@ -238,7 +256,6 @@ function limpiarFormulario() {
     productId.value = '';
     preview.style.display = 'none';
     imagenFile.value = '';
-    cameraFile.value = '';
     document.getElementById('precioOfertaGroup').style.display = 'none';
 }
 
@@ -318,7 +335,6 @@ const editCantPromo       = document.getElementById('editCantidadPromo');
 const editPrcPromo        = document.getElementById('editPrecioPromo');
 const editImagen          = document.getElementById('editImagen');
 const editImagenFile      = document.getElementById('editImagenFile');
-const editCameraFile      = document.getElementById('editCameraFile');
 const editImagenPreview   = document.getElementById('editImagenPreview');
 const editDescripcion     = document.getElementById('editDescripcion');
 const editDestacado       = document.getElementById('editDestacado');
@@ -377,7 +393,6 @@ function cerrarEditModal() {
     editModal.classList.remove('active');
     document.body.style.overflow = '';
     editImagenFile.value = '';
-    editCameraFile.value = '';
 }
 
 // Mostrar/ocultar precio oferta en modal
@@ -398,30 +413,27 @@ editImagen.addEventListener('input', () => {
 
 editImagenPreview.onerror = () => { editImagenPreview.style.display = 'none'; };
 
-// Subida de imagen en modal (galería o cámara)
-async function aplicarFotoModal(file, inputRef) {
+// Aplica una foto (comprimida) al formulario del modal de edición
+async function aplicarFotoModal(file) {
     try {
         const dataUrl = await redimensionarFoto(file);
         editImagen.value = dataUrl;
         editImagenPreview.src = dataUrl;
         editImagenPreview.style.display = 'block';
         const thumb = document.getElementById('editModalThumb');
-        thumb.src = dataUrl;
-        thumb.style.display = 'block';
+        if (thumb) { thumb.src = dataUrl; thumb.style.display = 'block'; }
     } catch {
-        alert('No se pudo leer la imagen. Intenta con otro archivo.');
-        inputRef.value = '';
+        alert('No se pudo procesar la imagen. Intenta de nuevo.');
     }
 }
 
 editImagenFile.addEventListener('change', e => {
     const file = e.target.files[0];
-    if (file) aplicarFotoModal(file, editImagenFile);
+    if (file) aplicarFotoModal(file);
 });
 
-editCameraFile.addEventListener('change', e => {
-    const file = e.target.files[0];
-    if (file) aplicarFotoModal(file, editCameraFile);
+document.getElementById('btnCameraModal')?.addEventListener('click', () => {
+    abrirCamara(file => aplicarFotoModal(file));
 });
 
 // Cerrar: botón X, botón Cancelar, backdrop, Escape
