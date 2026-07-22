@@ -473,10 +473,32 @@ RESPONSIVE
 
     }
 
-    /* Ajustes internos del área de peso en celular */
+    /* Ajustes internos del área de peso en celular: apilar input y botón */
     .peso-label{
 
     font-size:.76rem;
+
+    }
+
+    .peso-input-row{
+
+    flex-direction:column;
+
+    align-items:stretch;
+
+    gap:8px;
+
+    }
+
+    .peso-input-row .product__button{
+
+    width:100%;
+
+    border-radius:50px;
+
+    height:44px;
+
+    font-size:1.1rem;
 
     }
 
