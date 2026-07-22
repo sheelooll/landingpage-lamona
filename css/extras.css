@@ -43,8 +43,8 @@
         /* ── Mayorista en tarjeta ── */
         .product__mayorista {
             display:flex; align-items:center; gap:5px;
-            font-size:.82rem; color:#8D6E63; font-weight:600;
-            margin-top:4px; background:#f9f4f2; border-radius:6px;
+            font-size:.82rem; color:#800020; font-weight:600;
+            margin-top:4px; background:#fdf0f3; border-radius:6px;
             padding:4px 8px; width:fit-content;
         }
         .product__mayorista i { font-size:.95rem; }
@@ -97,7 +97,7 @@
             width:38px; height:38px; border-radius:50%;
             background:#f3f3f3; transition:.3s; font-size:1.1rem;
         }
-        .modal__header button:hover { background:#8D6E63; color:white; }
+        .modal__header button:hover { background:#800020; color:white; }
         .modal__body { padding:22px 26px 26px; display:flex; flex-direction:column; gap:14px; }
         .modal__body input,
         .modal__body select {
@@ -106,7 +106,7 @@
             box-sizing:border-box;
         }
         .modal__body input:focus,
-        .modal__body select:focus { border-color:#8D6E63; }
+        .modal__body select:focus { border-color:#800020; }
         .modal__body .btn { width:100%; margin-top:6px; }
         .modal__error { color:#dc2626; font-size:.88rem; display:none; }
         .modal__info  { font-size:.9rem; color:#666; margin:0; }
@@ -116,9 +116,9 @@
             width:42px; height:42px; border-radius:50%;
             background:#f3f3f3; border:none; cursor:pointer;
             display:flex; align-items:center; justify-content:center;
-            font-size:1.1rem; color:#8D6E63; transition:.3s;
+            font-size:1.1rem; color:#800020; transition:.3s;
         }
-        .admin-nav-btn:hover { background:#8D6E63; color:white; }
+        .admin-nav-btn:hover { background:#800020; color:white; }
 
         /* ── Badge oferta en tarjeta ── */
         .product__badge--oferta { background:#dc2626; }
@@ -135,10 +135,11 @@
             display:inline-flex; align-items:center; gap:3px;
             margin-top:3px; padding:2px 7px; border-radius:5px;
         }
-        .mayoreo-label { color:#8D6E63; background:#f9f4f2; }
+        .mayoreo-label { color:#800020; background:#fdf0f3; }
         .oferta-label  { color:#dc2626; background:#fee2e2; }
         .promo-label   { color:#16a34a; background:#ecfdf3; }
-        .cart-item__price.mayoreo { color:#8D6E63; }
+        .cart-item__price.mayoreo { color:#800020; }
+
         .cart-item__price.oferta  { color:#dc2626; }
         .cart-item__price.promo   { color:#16a34a; }
 
@@ -149,18 +150,18 @@
         }
         .product__qty {
             display:flex; align-items:center; gap:1px;
-            background:#f3f0ee; border-radius:50px;
+            background:#f9eef0; border-radius:50px;
             padding:3px; flex-shrink:0;
         }
         .product__qty button {
             width:32px; height:32px; border-radius:50%;
             border:none; cursor:pointer;
-            background:transparent; color:#8D6E63;
+            background:transparent; color:#800020;
             font-size:1.2rem; font-weight:700; line-height:1;
             display:flex; align-items:center; justify-content:center;
             transition:.25s;
         }
-        .product__qty button:hover { background:#8D6E63; color:white; }
+        .product__qty button:hover { background:#800020; color:white; }
         .product__qty .qty-value {
             min-width:24px; text-align:center;
             color:#2C2C2C; font-weight:700; font-size:1rem;
@@ -182,3 +183,69 @@
             opacity:1; transform:translateX(-50%) translateY(0);
         }
         .cart-toast i { color:#22c55e; font-size:1.1rem; }
+
+        /* ── Venta por peso: label + input en la tarjeta ── */
+        .product__cart-area--peso {
+            flex: 1 0 100%;
+            flex-direction: column;
+            align-items: flex-start;
+            margin-left: 0;
+            gap: 6px;
+        }
+        .peso-label {
+            font-size: .85rem;
+            font-weight: 700;
+            color: var(--primary);
+            letter-spacing: .2px;
+        }
+        .peso-input-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+        }
+        .peso-spec {
+            flex: 1;
+            min-width: 0;
+            padding: 8px 12px;
+            border: 1.5px solid var(--border);
+            border-radius: 50px;
+            font-size: .82rem;
+            font-family: inherit;
+            outline: none;
+            transition: border-color .25s, box-shadow .25s;
+            background: white;
+            color: var(--text);
+        }
+        .peso-spec:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(128,0,32,.12);
+        }
+        .peso-spec--vacio {
+            border-color: #dc2626 !important;
+            box-shadow: 0 0 0 3px rgba(220,38,38,.15) !important;
+            animation: shake .25s ease;
+        }
+        @keyframes shake {
+            0%,100% { transform: translateX(0); }
+            25%      { transform: translateX(-4px); }
+            75%      { transform: translateX(4px); }
+        }
+
+        /* ── Especificación de peso en ítem del carrito ── */
+        .cart-item__spec {
+            font-size: .82rem;
+            color: var(--primary);
+            font-weight: 700;
+            margin: 3px 0 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .cart-item__spec i { font-size: .9rem; }
+
+        /* ── Badge "Por peso" en tabla admin ── */
+        .badge--peso {
+            background: #7c3aed;
+            color: white;
+        }

@@ -80,7 +80,7 @@ CATALOGO
     
     outline:none;
     
-    box-shadow:0 0 0 4px rgba(141,110,99,.15);
+    box-shadow:0 0 0 4px rgba(128,0,32,.15);
     
     }
     
@@ -673,12 +673,12 @@ Paginación del catálogo
 }
 
 .pagination button:hover:not(:disabled):not(.active){
-    background:#8D6E63;
+    background:#800020;
     color:white;
 }
 
 .pagination button.active{
-    background:#8D6E63;
+    background:#800020;
     color:white;
     cursor:default;
 }

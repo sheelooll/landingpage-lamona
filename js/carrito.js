@@ -128,14 +128,23 @@ Agregar producto
 (NO abre el carrito automáticamente)
 ============================*/
 
-function agregarAlCarrito(id, cantidad = 1) {
+function agregarAlCarrito(id, cantidad = 1, especificacion = '') {
     const producto = buscarProducto(id);
     if (!producto) return;
     cantidad = Math.max(1, Number(cantidad) || 1);
 
-    const existe = carrito.find(p => p.id === id);
+    // Productos por peso: cada especificación es un ítem único
+    const existe = especificacion
+        ? carrito.find(p => p.id === id && p.especificacion === especificacion)
+        : carrito.find(p => p.id === id && !p.especificacion);
+
     if (existe) {
-        existe.cantidad += cantidad;
+        if (especificacion) {
+            // Para peso, agregar de nuevo con misma spec actualiza la spec (última pedida)
+            existe.especificacion = especificacion;
+        } else {
+            existe.cantidad += cantidad;
+        }
     } else {
         carrito.push({
             id:               producto.id,
@@ -148,15 +157,19 @@ function agregarAlCarrito(id, cantidad = 1) {
             precioPromo:      producto.precioPromo      || null,
             cantidadPromo:    producto.cantidadPromo    || null,
             imagen:           producto.imagen,
+            ventaPorPeso:     !!producto.ventaPorPeso,
+            especificacion:   especificacion,
             cantidad:         cantidad
         });
     }
 
     guardarCarrito();
     renderizarCarrito();
-    mostrarToast(cantidad > 1
-        ? `${cantidad} productos agregados al carrito`
-        : 'Producto agregado al carrito');
+    mostrarToast(especificacion
+        ? `${escapeHTML(producto.nombre)} agregado al carrito`
+        : cantidad > 1
+            ? `${cantidad} productos agregados al carrito`
+            : 'Producto agregado al carrito');
     // NO se llama abrirCarrito(): el cliente decide cuándo abrirlo
 }
 
@@ -219,23 +232,29 @@ function renderizarCarrito() {
             ? `$${subtotalItem(producto).toLocaleString('es-CL')}`
             : `$${pEfectivo.toLocaleString('es-CL')} c/u`;
 
+        const especHTML = producto.especificacion
+            ? `<div class="cart-item__spec"><i class="ri-scissors-cut-line"></i> ${escapeHTML(producto.especificacion)}</div>`
+            : '';
+
         cartItems.innerHTML += `
         <article class="cart-item">
             <img src="${escapeHTML(producto.imagen)}" alt="${escapeHTML(producto.nombre)}">
             <div class="cart-item__info">
                 <div>
                     <div class="cart-item__title">${escapeHTML(producto.nombre)}</div>
+                    ${especHTML}
                     <div class="cart-item__price${esMayoreo ? ' mayoreo' : esPromo ? ' promo' : esOfertaUI ? ' oferta' : ''}">
                         ${precioLinea}
                     </div>
                     ${precioBadge}
                 </div>
                 <div class="cart-item__actions">
+                    ${producto.ventaPorPeso ? '' : `
                     <div class="quantity">
                         <button onclick="disminuirCantidad(${producto.id})">-</button>
                         <span>${producto.cantidad}</span>
                         <button onclick="aumentarCantidad(${producto.id})">+</button>
-                    </div>
+                    </div>`}
                     <button class="remove-item" onclick="eliminarDelCarrito(${producto.id})">Eliminar</button>
                 </div>
             </div>
@@ -363,7 +382,11 @@ function procesarCheckout(e) {
             : promoAplica(p)
                 ? ` — promo ${p.cantidadPromo} x $${Number(p.precioPromo).toLocaleString('es-CL')}`
                 : (p.enOferta && p.precioOferta ? ' — oferta' : '');
-        texto += `• ${p.nombre} x${p.cantidad} → $${subtotalItem(p).toLocaleString('es-CL')}${tag}\n`;
+        if (p.ventaPorPeso && p.especificacion) {
+            texto += `• ${p.nombre} — ${p.especificacion} → $${subtotalItem(p).toLocaleString('es-CL')}${tag}\n`;
+        } else {
+            texto += `• ${p.nombre} x${p.cantidad} → $${subtotalItem(p).toLocaleString('es-CL')}${tag}\n`;
+        }
     });
     texto += `\n💵 *Total: $${calcularTotal().toLocaleString('es-CL')}*\n`;
     texto += `\n🚚 *Entrega:* ${entrega}\n`;

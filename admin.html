@@ -127,10 +127,16 @@
 
                     <!-- Imagen -->
                     <div class="imagen-section">
-                        <label class="upload-label" for="imagenFile">
-                            <i class="ri-image-add-line"></i> Subir imagen desde el dispositivo
-                            <input id="imagenFile" type="file" accept="image/*">
-                        </label>
+                        <div class="imagen-btns">
+                            <label class="upload-label" for="imagenFile">
+                                <i class="ri-image-add-line"></i> Subir desde galería
+                                <input id="imagenFile" type="file" accept="image/*">
+                            </label>
+                            <label class="upload-label upload-label--camera" for="cameraFile">
+                                <i class="ri-camera-line"></i> Tomar foto
+                                <input id="cameraFile" type="file" accept="image/*" capture="environment">
+                            </label>
+                        </div>
                         <input id="imagen" type="text" placeholder="O pega aquí la URL de la imagen">
                     </div>
 
@@ -138,6 +144,10 @@
 
                     <label>
                         <input id="destacado" type="checkbox"> Producto destacado
+                    </label>
+
+                    <label>
+                        <input id="ventaPorPeso" type="checkbox"> Venta por peso / láminas <small style="color:#666;">(el cliente especifica la cantidad al pedir)</small>
                     </label>
 
                     <!-- Oferta -->
@@ -288,6 +298,117 @@
         </div><!-- /contactoSection -->
 
     </main>
+</div>
+
+<!-- ════════════════════════════════════════
+     MODAL DE EDICIÓN DE PRODUCTO
+     ════════════════════════════════════════ -->
+<div id="editModal" class="edit-modal" role="dialog" aria-modal="true" aria-labelledby="editModalTitle">
+    <div class="edit-modal__backdrop" id="editModalBackdrop"></div>
+    <div class="edit-modal__box">
+
+        <!-- Header pegajoso con miniatura -->
+        <div class="edit-modal__header">
+            <div class="edit-modal__header-left">
+                <img id="editModalThumb" class="edit-modal__thumb" alt="">
+                <div class="edit-modal__header-text">
+                    <h2 id="editModalTitle">Editar Producto</h2>
+                    <span id="editModalCatTag" class="edit-modal__cat-tag"></span>
+                </div>
+            </div>
+            <button id="closeEditModal" class="edit-modal__close" title="Cerrar" type="button">
+                <i class="ri-close-line"></i>
+            </button>
+        </div>
+
+        <!-- Cuerpo: formulario completo -->
+        <div class="edit-modal__body">
+            <form id="editProductForm" autocomplete="off">
+                <input type="hidden" id="editProductId">
+
+                <div class="grid-2">
+                    <div>
+                        <label class="edit-label" for="editNombre">Nombre</label>
+                        <input id="editNombre" type="text" required placeholder="Nombre del producto">
+                    </div>
+                    <div>
+                        <label class="edit-label" for="editCategoriaSelect">Categoría</label>
+                        <select id="editCategoriaSelect" required></select>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div>
+                        <label class="edit-label" for="editPrecio">Precio normal ($) <small>— opcional</small></label>
+                        <input id="editPrecio" type="number" min="0" placeholder="Ej: 2990">
+                    </div>
+                    <div>
+                        <label class="edit-label" for="editStock">Stock <small>— vacío = ilimitado</small></label>
+                        <input id="editStock" type="number" min="0" placeholder="Ej: 50">
+                    </div>
+                </div>
+
+                <!-- Precio mayorista -->
+                <div class="mayorista-section">
+                    <p class="section-label"><i class="ri-group-line"></i> Precio mayorista (opcional)</p>
+                    <div class="grid-2">
+                        <input id="editCantidadMayorista" type="number" min="2" placeholder="Cantidad mínima (ej: 6)">
+                        <input id="editPrecioMayorista"   type="number" min="0" placeholder="Precio c/u por volumen ($)">
+                    </div>
+                </div>
+
+                <!-- Promo por pack -->
+                <div class="mayorista-section">
+                    <p class="section-label"><i class="ri-price-tag-2-line"></i> Promo por pack (opcional)</p>
+                    <div class="grid-2">
+                        <input id="editCantidadPromo" type="number" min="2" placeholder="Cantidad del pack (ej: 3)">
+                        <input id="editPrecioPromo"   type="number" min="0" placeholder="Precio total del pack ($)">
+                    </div>
+                </div>
+
+                <!-- Imagen -->
+                <div class="imagen-section">
+                    <div class="imagen-btns">
+                        <label class="upload-label" for="editImagenFile">
+                            <i class="ri-image-add-line"></i> Subir imagen
+                            <input id="editImagenFile" type="file" accept="image/*">
+                        </label>
+                        <label class="upload-label upload-label--camera" for="editCameraFile">
+                            <i class="ri-camera-line"></i> Tomar foto
+                            <input id="editCameraFile" type="file" accept="image/*" capture="environment">
+                        </label>
+                    </div>
+                    <input id="editImagen" type="text" placeholder="O pega aquí la URL de la imagen">
+                    <img id="editImagenPreview" style="width:90px;height:90px;object-fit:cover;border-radius:10px;margin-top:8px;display:none;" alt="Preview">
+                </div>
+
+                <div style="margin-top:4px;">
+                    <label class="edit-label" for="editDescripcion">Descripción</label>
+                    <textarea id="editDescripcion" rows="3" placeholder="Descripción del producto"></textarea>
+                </div>
+
+                <!-- Checkboxes -->
+                <div class="edit-modal__checks">
+                    <label><input id="editDestacado"    type="checkbox"> Producto destacado</label>
+                    <label><input id="editVentaPorPeso" type="checkbox"> Venta por peso / láminas</label>
+                    <label><input id="editEnOferta"     type="checkbox"> Producto en oferta</label>
+                </div>
+                <div id="editPrecioOfertaGroup" style="display:none;margin-bottom:16px;">
+                    <label class="edit-label" for="editPrecioOferta">Precio de oferta ($)</label>
+                    <input id="editPrecioOferta" type="number" min="0" placeholder="Precio con descuento">
+                </div>
+
+                <div class="edit-modal__footer">
+                    <button type="button" id="editModalCancelBtn" class="btn-cancelar-modal">
+                        <i class="ri-close-line"></i> Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="ri-save-line"></i> Guardar cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"

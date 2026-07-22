@@ -184,7 +184,7 @@ function crearTarjetaProducto(producto) {
                     ${mayorista}
                     ${stockLabel}
                 </div>
-                <div class="product__cart-area" data-id="${producto.id}">
+                <div class="product__cart-area${producto.ventaPorPeso ? ' product__cart-area--peso' : ''}" data-id="${producto.id}">
                     ${controlCarritoHTML(producto)}
                 </div>
             </div>
@@ -208,6 +208,17 @@ function controlCarritoHTML(producto) {
         <button class="product__button" disabled>
             <i class="ri-close-line"></i>
         </button>`;
+    }
+
+    if (producto.ventaPorPeso) {
+        return `
+        <span class="peso-label">¿Cuánta cantidad quieres?</span>
+        <div class="peso-input-row">
+            <input type="text" class="peso-spec" placeholder="Ej: 10 lám., ¼ kg, ½ kg" aria-label="Especifica la cantidad">
+            <button class="product__button add-cart-btn" data-id="${producto.id}" title="Agregar al carrito">
+                <i class="ri-shopping-cart-2-line"></i>
+            </button>
+        </div>`;
     }
 
     return `
@@ -255,9 +266,25 @@ function agregarEventosProductos() {
         // El botón de carrito envía la cantidad seleccionada y resetea a 1
         const add = e.target.closest('.add-cart-btn');
         if (add && window.carrito) {
-            const cantidad = valor ? Number(valor.textContent) : 1;
-            window.carrito.agregar(Number(add.dataset.id), cantidad);
-            if (valor) valor.textContent = '1';
+            const producto = productos.find(p => p.id === Number(area.dataset.id));
+            if (producto && producto.ventaPorPeso) {
+                const specInput = area.querySelector('.peso-spec');
+                const spec = specInput ? specInput.value.trim() : '';
+                if (!spec) {
+                    if (specInput) {
+                        specInput.focus();
+                        specInput.classList.add('peso-spec--vacio');
+                        setTimeout(() => specInput.classList.remove('peso-spec--vacio'), 1200);
+                    }
+                    return;
+                }
+                window.carrito.agregar(Number(add.dataset.id), 1, spec);
+                if (specInput) specInput.value = '';
+            } else {
+                const cantidad = valor ? Number(valor.textContent) : 1;
+                window.carrito.agregar(Number(add.dataset.id), cantidad);
+                if (valor) valor.textContent = '1';
+            }
         }
     });
 }

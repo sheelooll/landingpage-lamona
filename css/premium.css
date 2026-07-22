@@ -12,7 +12,7 @@ Se carga al final de style.css para refinar la cascada.
     --ease-spring:cubic-bezier(.34,1.56,.64,1);
 
     /* Anillo de foco accesible */
-    --focus-ring:0 0 0 3px rgba(141,110,99,.35);
+    --focus-ring:0 0 0 3px rgba(128,0,32,.35);
 
 }
 
@@ -21,7 +21,7 @@ SELECCIÓN DE TEXTO
 ==========================*/
 
 ::selection{
-    background:rgba(141,110,99,.25);
+    background:rgba(128,0,32,.25);
     color:var(--black);
 }
 
@@ -94,7 +94,7 @@ BOTONES
 }
 
 .btn-primary:hover{
-    box-shadow:0 12px 28px rgba(141,110,99,.35);
+    box-shadow:0 12px 28px rgba(128,0,32,.35);
 }
 
 .btn:active{
@@ -147,7 +147,7 @@ que el fade-up del observer sea suave
 }
 
 .product__button:hover:not(:disabled){
-    box-shadow:0 8px 20px rgba(141,110,99,.4);
+    box-shadow:0 8px 20px rgba(128,0,32,.4);
 }
 
 .product__button:active:not(:disabled){
@@ -205,7 +205,7 @@ BUSCADOR
 ==========================*/
 
 .catalog__search input:focus{
-    box-shadow:0 0 0 4px rgba(141,110,99,.18), var(--shadow-md);
+    box-shadow:0 0 0 4px rgba(128,0,32,.18), var(--shadow-md);
 }
 
 /*==========================

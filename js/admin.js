@@ -92,6 +92,7 @@ const precio            = document.getElementById('precio');
 const stockInput        = document.getElementById('stock');
 const imagen            = document.getElementById('imagen');
 const imagenFile        = document.getElementById('imagenFile');
+const cameraFile        = document.getElementById('cameraFile');
 const descripcion       = document.getElementById('descripcion');
 const destacado         = document.getElementById('destacado');
 const enOferta          = document.getElementById('enOferta');
@@ -100,6 +101,7 @@ const cantidadMayorista = document.getElementById('cantidadMayorista');
 const precioMayorista   = document.getElementById('precioMayorista');
 const cantidadPromo     = document.getElementById('cantidadPromo');
 const precioPromo       = document.getElementById('precioPromo');
+const ventaPorPeso      = document.getElementById('ventaPorPeso');
 
 /*============================
 Vista previa imagen
@@ -120,9 +122,7 @@ preview.onerror = () => { preview.style.display = 'none'; };
 // Las fotos de celular pesan varios MB y superan el límite de
 // 1 MB por documento de Firestore (por eso "no quedaban guardadas"):
 // se comprimen igual que las fotos de portada antes de usarlas.
-imagenFile.addEventListener('change', async e => {
-    const file = e.target.files[0];
-    if (!file) return;
+async function aplicarFotoProducto(file, inputRef) {
     try {
         const dataUrl = await redimensionarFoto(file);
         imagen.value = dataUrl;
@@ -130,8 +130,18 @@ imagenFile.addEventListener('change', async e => {
         preview.style.display = 'block';
     } catch {
         alert('No se pudo leer la imagen. Intenta con otro archivo.');
-        imagenFile.value = '';
+        inputRef.value = '';
     }
+}
+
+imagenFile.addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (file) aplicarFotoProducto(file, imagenFile);
+});
+
+cameraFile.addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (file) aplicarFotoProducto(file, cameraFile);
 });
 
 // Mostrar/ocultar precio de oferta según checkbox
@@ -152,7 +162,7 @@ function filaHTML(producto) {
         ? `<br><small style="color:#dc2626;font-weight:700;">OFERTA $${Number(producto.precioOferta).toLocaleString('es-CL')}</small>`
         : '';
     const mayoristaTxt = (producto.precioMayorista && producto.cantidadMayorista)
-        ? `<br><small style="color:#8D6E63">${producto.cantidadMayorista} unid → $${Number(producto.precioMayorista).toLocaleString('es-CL')} c/u</small>`
+        ? `<br><small style="color:#800020">${producto.cantidadMayorista} unid → $${Number(producto.precioMayorista).toLocaleString('es-CL')} c/u</small>`
         : '';
     const promoTxt = (producto.precioPromo && producto.cantidadPromo)
         ? `<br><small style="color:#16a34a;font-weight:700;">${producto.cantidadPromo} x $${Number(producto.precioPromo).toLocaleString('es-CL')}</small>`
@@ -160,7 +170,7 @@ function filaHTML(producto) {
     return `
     <tr>
         <td><img src="${escapeHTML(producto.imagen)}" alt="${escapeHTML(producto.nombre)}"></td>
-        <td>${escapeHTML(producto.nombre)}${producto.destacado ? ' <span class="badge">Destacado</span>' : ''}${producto.enOferta ? ' <span class="badge badge--oferta">Oferta</span>' : ''}</td>
+        <td>${escapeHTML(producto.nombre)}${producto.destacado ? ' <span class="badge">Destacado</span>' : ''}${producto.enOferta ? ' <span class="badge badge--oferta">Oferta</span>' : ''}${producto.ventaPorPeso ? ' <span class="badge badge--peso">Por peso</span>' : ''}</td>
         <td>${escapeHTML(producto.categoria)}</td>
         <td>${producto.precio != null ? '$' + Number(producto.precio).toLocaleString('es-CL') : '—'}${ofertaTxt}${promoTxt}${mayoristaTxt}</td>
         <td>${stockLabel}</td>
@@ -174,17 +184,48 @@ function filaHTML(producto) {
 }
 
 /*============================
+Migración: activa "venta por peso" en todos
+los fiambres que aún no lo tengan. Idempotente:
+si ya están migrados, no hace nada.
+============================*/
+
+function migrarFiambresAPorPeso() {
+    // Solo se puede escribir en Firestore con sesión activa.
+    // datosCargados se pone en true solo después de que onAuthStateChanged
+    // confirma al usuario, así que es el guard correcto.
+    if (!datosCargados) return;
+    const prods = obtenerProductos();
+    const necesita = prods.some(
+        p => p.categoria.toLowerCase() === 'fiambres' && !p.ventaPorPeso
+    );
+    if (!necesita) return;
+    const actualizados = prods.map(p =>
+        p.categoria.toLowerCase() === 'fiambres' ? { ...p, ventaPorPeso: true } : p
+    );
+    guardarProductos(actualizados);
+}
+
+/*============================
 Cargar tabla
 ============================*/
 
+let _debounceTabla = null;
+
 function cargarTabla() {
+    migrarFiambresAPorPeso();
     productos = obtenerProductos();
-    tablaProductos.innerHTML = '';
-    productos.forEach(p => { tablaProductos.innerHTML += filaHTML(p); });
-    // Las categorías dependen de los productos (conteo de usos y
-    // categorías derivadas), así que se refrescan junto con la tabla
+    // Construye todo el HTML en memoria y lo vuelca de una sola vez
+    // (innerHTML += en bucle es O(n²): reparsea el DOM en cada iteración)
+    tablaProductos.innerHTML = productos.map(filaHTML).join('');
     renderizarCategoriasAdmin();
     cargarSelectCategorias();
+}
+
+// Versión con debounce para los eventos de Firestore:
+// si llegan varios seguidos (productos + categorías), se colapsan en un render
+function cargarTablaDebounced() {
+    clearTimeout(_debounceTabla);
+    _debounceTabla = setTimeout(cargarTabla, 60);
 }
 
 /*============================
@@ -196,6 +237,7 @@ function limpiarFormulario() {
     productId.value = '';
     preview.style.display = 'none';
     imagenFile.value = '';
+    cameraFile.value = '';
     document.getElementById('precioOfertaGroup').style.display = 'none';
 }
 
@@ -241,7 +283,8 @@ productForm.addEventListener('submit', e => {
         precioMayorista: precioMayorista.value.trim() === '' ? null : Number(precioMayorista.value),
         cantidadMayorista: cantidadMayorista.value.trim() === '' ? null : Number(cantidadMayorista.value),
         precioPromo: precioPromo.value.trim() === '' ? null : Number(precioPromo.value),
-        cantidadPromo: cantidadPromo.value.trim() === '' ? null : Number(cantidadPromo.value)
+        cantidadPromo: cantidadPromo.value.trim() === '' ? null : Number(cantidadPromo.value),
+        ventaPorPeso: ventaPorPeso.checked
     };
 
     if (productId.value === '') {
@@ -258,37 +301,201 @@ productForm.addEventListener('submit', e => {
 });
 
 /*============================
-Editar producto
+Modal de edición — referencias
+============================*/
+
+const editModal           = document.getElementById('editModal');
+const editProductForm     = document.getElementById('editProductForm');
+const editProductId       = document.getElementById('editProductId');
+const editNombre          = document.getElementById('editNombre');
+const editCategoriaSelect = document.getElementById('editCategoriaSelect');
+const editPrecio          = document.getElementById('editPrecio');
+const editStock           = document.getElementById('editStock');
+const editCantMayorista   = document.getElementById('editCantidadMayorista');
+const editPrcMayorista    = document.getElementById('editPrecioMayorista');
+const editCantPromo       = document.getElementById('editCantidadPromo');
+const editPrcPromo        = document.getElementById('editPrecioPromo');
+const editImagen          = document.getElementById('editImagen');
+const editImagenFile      = document.getElementById('editImagenFile');
+const editCameraFile      = document.getElementById('editCameraFile');
+const editImagenPreview   = document.getElementById('editImagenPreview');
+const editDescripcion     = document.getElementById('editDescripcion');
+const editDestacado       = document.getElementById('editDestacado');
+const editVentaPorPeso    = document.getElementById('editVentaPorPeso');
+const editEnOferta        = document.getElementById('editEnOferta');
+const editPrecioOferta    = document.getElementById('editPrecioOferta');
+
+function abrirEditModal(producto) {
+    // Poblar select de categorías
+    const cats = todasLasCategorias();
+    editCategoriaSelect.innerHTML = cats
+        .map(c => `<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`)
+        .join('');
+
+    // Llenar campos
+    editProductId.value        = producto.id;
+    editNombre.value           = producto.nombre;
+    editCategoriaSelect.value  = producto.categoria;
+    editPrecio.value           = producto.precio ?? '';
+    editStock.value            = (producto.stock === null || producto.stock === undefined) ? '' : producto.stock;
+    editImagen.value           = producto.imagen || '';
+    editDescripcion.value      = producto.descripcion || '';
+    editDestacado.checked      = !!producto.destacado;
+    editVentaPorPeso.checked   = !!producto.ventaPorPeso;
+    editEnOferta.checked       = !!producto.enOferta;
+    editPrecioOferta.value     = producto.precioOferta || '';
+    editCantMayorista.value    = producto.cantidadMayorista || '';
+    editPrcMayorista.value     = producto.precioMayorista || '';
+    editCantPromo.value        = producto.cantidadPromo || '';
+    editPrcPromo.value         = producto.precioPromo || '';
+
+    document.getElementById('editPrecioOfertaGroup').style.display =
+        producto.enOferta ? 'block' : 'none';
+
+    // Header: miniatura y nombre
+    const thumb = document.getElementById('editModalThumb');
+    thumb.src = producto.imagen || '';
+    thumb.style.display = producto.imagen ? 'block' : 'none';
+    document.getElementById('editModalTitle').textContent = producto.nombre;
+    document.getElementById('editModalCatTag').textContent = producto.categoria;
+
+    // Preview imagen
+    if (producto.imagen) {
+        editImagenPreview.src = producto.imagen;
+        editImagenPreview.style.display = 'block';
+    } else {
+        editImagenPreview.style.display = 'none';
+    }
+
+    editModal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    editNombre.focus();
+}
+
+function cerrarEditModal() {
+    editModal.classList.remove('active');
+    document.body.style.overflow = '';
+    editImagenFile.value = '';
+    editCameraFile.value = '';
+}
+
+// Mostrar/ocultar precio oferta en modal
+editEnOferta.addEventListener('change', () => {
+    document.getElementById('editPrecioOfertaGroup').style.display =
+        editEnOferta.checked ? 'block' : 'none';
+    if (!editEnOferta.checked) editPrecioOferta.value = '';
+});
+
+// Preview de imagen por URL en modal
+editImagen.addEventListener('input', () => {
+    const url = editImagen.value.trim();
+    editImagenPreview.style.display = url ? 'block' : 'none';
+    if (url) editImagenPreview.src = url;
+    const thumb = document.getElementById('editModalThumb');
+    if (url) { thumb.src = url; thumb.style.display = 'block'; }
+});
+
+editImagenPreview.onerror = () => { editImagenPreview.style.display = 'none'; };
+
+// Subida de imagen en modal (galería o cámara)
+async function aplicarFotoModal(file, inputRef) {
+    try {
+        const dataUrl = await redimensionarFoto(file);
+        editImagen.value = dataUrl;
+        editImagenPreview.src = dataUrl;
+        editImagenPreview.style.display = 'block';
+        const thumb = document.getElementById('editModalThumb');
+        thumb.src = dataUrl;
+        thumb.style.display = 'block';
+    } catch {
+        alert('No se pudo leer la imagen. Intenta con otro archivo.');
+        inputRef.value = '';
+    }
+}
+
+editImagenFile.addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (file) aplicarFotoModal(file, editImagenFile);
+});
+
+editCameraFile.addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (file) aplicarFotoModal(file, editCameraFile);
+});
+
+// Cerrar: botón X, botón Cancelar, backdrop, Escape
+document.getElementById('closeEditModal').addEventListener('click', cerrarEditModal);
+document.getElementById('editModalCancelBtn').addEventListener('click', cerrarEditModal);
+document.getElementById('editModalBackdrop').addEventListener('click', cerrarEditModal);
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && editModal.classList.contains('active')) cerrarEditModal();
+});
+
+// Guardar edición desde el modal
+editProductForm.addEventListener('submit', e => {
+    e.preventDefault();
+
+    if ((editCantPromo.value.trim() === '') !== (editPrcPromo.value.trim() === '')) {
+        alert('Para la promo por pack completa la cantidad Y el precio, o deja ambos en blanco.');
+        return;
+    }
+    if ((editCantMayorista.value.trim() === '') !== (editPrcMayorista.value.trim() === '')) {
+        alert('Para el precio mayorista completa la cantidad Y el precio, o deja ambos en blanco.');
+        return;
+    }
+    if (!editPrecio.value.trim() && !editPrcMayorista.value.trim() && !editPrcPromo.value.trim()) {
+        alert('Ingresa al menos un precio: normal, mayorista o promo por pack.');
+        return;
+    }
+
+    const idEditar = Number(editProductId.value);
+
+    const editado = {
+        id:                idEditar,
+        nombre:            editNombre.value.trim(),
+        categoria:         editCategoriaSelect.value.trim(),
+        precio:            editPrecio.value.trim() === '' ? null : Number(editPrecio.value),
+        stock:             editStock.value.trim() === '' ? null : Number(editStock.value),
+        imagen:            editImagen.value.trim(),
+        descripcion:       editDescripcion.value.trim(),
+        destacado:         editDestacado.checked,
+        enOferta:          editEnOferta.checked,
+        precioOferta:      editPrecioOferta.value.trim() === '' ? null : Number(editPrecioOferta.value),
+        precioMayorista:   editPrcMayorista.value.trim() === '' ? null : Number(editPrcMayorista.value),
+        cantidadMayorista: editCantMayorista.value.trim() === '' ? null : Number(editCantMayorista.value),
+        precioPromo:       editPrcPromo.value.trim() === '' ? null : Number(editPrcPromo.value),
+        cantidadPromo:     editCantPromo.value.trim() === '' ? null : Number(editCantPromo.value),
+        ventaPorPeso:      editVentaPorPeso.checked
+    };
+
+    // Lee siempre desde localStorage (fuente fresca) para no depender
+    // de que el array en memoria esté sincronizado. Compara como Number
+    // para tolerar IDs guardados como string en versiones anteriores.
+    const lista = obtenerProductos();
+    const idx   = lista.findIndex(p => Number(p.id) === idEditar);
+
+    if (idx === -1) {
+        alert('No se encontró el producto. Recarga la página e intenta de nuevo.');
+        return;
+    }
+
+    lista[idx] = editado;
+    productos   = lista; // sincroniza el array en memoria
+    guardarProductos(lista);
+    cargarTabla();
+    actualizarCatalogo();
+    cerrarEditModal();
+});
+
+/*============================
+Editar producto (abre modal)
 ============================*/
 
 function editarProducto(id) {
-    const producto = productos.find(p => p.id === id);
+    const nId = Number(id);
+    const producto = productos.find(p => Number(p.id) === nId);
     if (!producto) return;
-
-    productId.value          = producto.id;
-    nombre.value             = producto.nombre;
-    categoria.value          = producto.categoria;
-    precio.value             = producto.precio ?? '';
-    stockInput.value         = (producto.stock === null || producto.stock === undefined) ? '' : producto.stock;
-    imagen.value             = producto.imagen || '';
-    descripcion.value        = producto.descripcion || '';
-    destacado.checked        = !!producto.destacado;
-    enOferta.checked         = !!producto.enOferta;
-    precioOferta.value       = producto.precioOferta || '';
-    document.getElementById('precioOfertaGroup').style.display = producto.enOferta ? 'block' : 'none';
-    cantidadMayorista.value  = producto.cantidadMayorista || '';
-    precioMayorista.value    = producto.precioMayorista || '';
-    cantidadPromo.value      = producto.cantidadPromo || '';
-    precioPromo.value        = producto.precioPromo || '';
-
-    if (producto.imagen) {
-        preview.src = producto.imagen;
-        preview.style.display = 'block';
-    } else {
-        preview.style.display = 'none';
-    }
-
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    abrirEditModal(producto);
 }
 
 /*============================
@@ -296,10 +503,11 @@ Eliminar producto
 ============================*/
 
 function eliminarProducto(id) {
-    const producto = productos.find(p => p.id === id);
+    const nId = Number(id);
+    const producto = productos.find(p => Number(p.id) === nId);
     if (!producto) return;
     if (!confirm(`¿Eliminar "${producto.nombre}"?`)) return;
-    productos = productos.filter(p => p.id !== id);
+    productos = productos.filter(p => Number(p.id) !== nId);
     guardarProductos(productos);
     cargarTabla();
     actualizarCatalogo();
@@ -316,8 +524,7 @@ buscar.addEventListener('input', function () {
         p.categoria.toLowerCase().includes(texto) ||
         (p.descripcion || '').toLowerCase().includes(texto)
     );
-    tablaProductos.innerHTML = '';
-    filtrados.forEach(p => { tablaProductos.innerHTML += filaHTML(p); });
+    tablaProductos.innerHTML = filtrados.map(filaHTML).join('');
 });
 
 /*============================
@@ -475,13 +682,13 @@ function renderizarPedidos() {
         return;
     }
 
-    orders.forEach(order => {
-        // Los pedidos los crea el cliente anónimo: todo campo de texto
-        // se escapa para evitar XSS almacenado contra el panel admin.
+    // Los pedidos los crea el cliente anónimo: todo campo de texto
+    // se escapa para evitar XSS almacenado contra el panel admin.
+    tbody.innerHTML = orders.map(order => {
         const prods = order.productos
             .map(p => `${escapeHTML(p.nombre)} ×${escapeHTML(p.cantidad)}`)
             .join(', ');
-        tbody.innerHTML += `
+        return `
         <tr>
             <td>${escapeHTML(order.fecha)}</td>
             <td>${escapeHTML(order.cliente)}</td>
@@ -490,7 +697,7 @@ function renderizarPedidos() {
             <td>${escapeHTML(order.entrega)}${order.direccion ? `<br><small>${escapeHTML(order.direccion)}</small>` : ''}${order.horaRetiro ? `<br><small>⏰ Retiro: ${escapeHTML(order.horaRetiro)}</small>` : ''}</td>
             <td>${escapeHTML(order.pago)}</td>
         </tr>`;
-    });
+    }).join('');
 }
 
 function limpiarPedidos() {
@@ -666,7 +873,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Sincronización en tiempo real desde Firestore (firebase-db.js)
-document.addEventListener('productosActualizados', cargarTabla);
+document.addEventListener('productosActualizados', cargarTablaDebounced);
 document.addEventListener('pedidosActualizados', renderizarPedidos);
 document.addEventListener('imagenesActualizadas', renderizarImagenes);
 document.addEventListener('contactoActualizado', cargarFormularioContacto);
