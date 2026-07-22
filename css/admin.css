@@ -1240,4 +1240,54 @@ MODAL DE EDICIÓN
     .edit-modal__header-text h2{
         max-width:200px;
     }
+    .edit-modal__body{
+        padding:16px;
+    }
+}
+
+/*==========================
+RESPONSIVE MÓVIL — filtros,
+botones de imagen y renombrar
+==========================*/
+
+@media(max-width:600px){
+
+    /* Barra de filtros: apilar en columna */
+    .admin-filtros{
+        flex-direction:column;
+        gap:8px;
+    }
+    .admin-filtros > input,
+    .admin-filtros select{
+        width:100%;
+        flex:1 1 auto;
+        box-sizing:border-box;
+    }
+
+    /* Botones de imagen: cada uno ocupa todo el ancho */
+    .imagen-btns{
+        flex-direction:column;
+    }
+    .imagen-btns .upload-label{
+        width:100%;
+        box-sizing:border-box;
+        justify-content:center;
+    }
+
+    /* Rename inline: reducir padding de botones para que quepan */
+    .rename-cat-input{
+        font-size:.9rem;
+        padding:6px 10px;
+    }
+    .btn-confirm-rename,
+    .btn-cancel-rename{
+        width:30px;
+        height:30px;
+        font-size:.9rem;
+    }
+
+    /* Categoría item: garantizar que el texto no rompa el layout */
+    .categoria-item{
+        gap:6px;
+    }
 }
