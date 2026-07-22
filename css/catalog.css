@@ -261,13 +261,11 @@ CATALOGO
     ==========================*/
     
     .product{
-    
+
     background:white;
-    
+
     border-radius:25px;
-    
-    overflow:hidden;
-    
+
     box-shadow:var(--shadow-sm);
     
     transition:.35s;
@@ -287,15 +285,17 @@ CATALOGO
     }
     
     .product__image{
-    
+
     position:relative;
-    
+
     height:280px;
-    
+
     overflow:hidden;
-    
+
+    border-radius:25px 25px 0 0;
+
     background:#f5f5f5;
-    
+
     }
     
     .product__image img{
