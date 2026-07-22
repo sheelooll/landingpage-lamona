@@ -445,25 +445,58 @@ CARRITO
     ==========================*/
     
     @media(max-width:600px){
-    
+
     .cart{
-    
     width:100%;
-    
     }
-    
+
+    .cart__header{
+    padding:16px 18px;
+    }
+
+    .cart__header h2{
+    font-size:1.5rem;
+    }
+
+    .cart__body{
+    padding:16px;
+    gap:14px;
+    }
+
     .cart-item{
-    
     grid-template-columns:70px 1fr;
-    
+    padding:11px;
+    gap:11px;
     }
-    
+
     .cart-item img{
-
     width:70px;
-
     height:70px;
+    }
 
+    .cart-item__title{
+    font-size:.95rem;
+    }
+
+    .cart-item__price{
+    font-size:1rem;
+    }
+
+    .cart-item__actions{
+    flex-wrap:wrap;
+    gap:6px;
+    }
+
+    .remove-item{
+    font-size:.82rem;
+    }
+
+    .cart__footer{
+    padding:16px 18px;
+    }
+
+    .cart__total strong{
+    font-size:1.6rem;
     }
 
     }

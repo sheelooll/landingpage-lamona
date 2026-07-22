@@ -337,22 +337,16 @@ function mostrarCheckoutModal() {
 function procesarCheckout(e) {
     e.preventDefault();
 
-    const nombre   = document.getElementById('clienteNombre').value.trim();
-    const entrega  = document.getElementById('metodoEntrega').value;
-    const direccion = entrega === 'Delivery'
-        ? (document.getElementById('direccionEnvio')?.value.trim() || '')
-        : '';
-    const horaRetiro = entrega === 'Retiro en tienda'
-        ? (document.getElementById('horaRetiro')?.value.trim() || '')
-        : '';
-    const pago     = document.getElementById('metodoPago').value;
+    const nombre     = document.getElementById('clienteNombre').value.trim();
+    const entrega    = 'Retiro en tienda';
+    const horaRetiro = document.getElementById('horaRetiro')?.value.trim() || '';
+    const pago       = document.getElementById('metodoPago').value;
 
     // Guardar pedido
     if (typeof saveOrder === 'function') {
         saveOrder({
             cliente: nombre,
             entrega,
-            direccion,
             horaRetiro,
             pago,
             productos: carrito.map(p => ({
@@ -389,10 +383,7 @@ function procesarCheckout(e) {
         }
     });
     texto += `\n💵 *Total: $${calcularTotal().toLocaleString('es-CL')}*\n`;
-    texto += `\n🚚 *Entrega:* ${entrega}\n`;
-    if (direccion) {
-        texto += `📍 *Dirección:* ${direccion}\n`;
-    }
+    texto += `\n🏪 *Retiro en tienda*\n`;
     if (horaRetiro) {
         texto += `⏰ *Hora de retiro:* ${horaRetiro}\n`;
     }
@@ -406,10 +397,6 @@ function procesarCheckout(e) {
     setOverlay(false);
     vaciarCarrito();
     e.target.reset();
-    const dg = document.getElementById('direccionGroup');
-    if (dg) dg.style.display = 'none';
-    const hg = document.getElementById('horaRetiroGroup');
-    if (hg) hg.style.display = 'none';
 }
 
 /*============================
@@ -426,21 +413,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const checkoutForm = document.getElementById('checkoutForm');
     if (checkoutForm) checkoutForm.addEventListener('submit', procesarCheckout);
 
-    const metodoEntrega   = document.getElementById('metodoEntrega');
-    const direccionGroup  = document.getElementById('direccionGroup');
-    const horaRetiroGroup = document.getElementById('horaRetiroGroup');
-    if (metodoEntrega) {
-        metodoEntrega.addEventListener('change', () => {
-            const esDelivery = metodoEntrega.value === 'Delivery';
-            const esRetiro   = metodoEntrega.value === 'Retiro en tienda';
-            if (direccionGroup) direccionGroup.style.display = esDelivery ? 'block' : 'none';
-            const dir = document.getElementById('direccionEnvio');
-            if (dir) dir.required = esDelivery;
-            if (horaRetiroGroup) horaRetiroGroup.style.display = esRetiro ? 'block' : 'none';
-            const hora = document.getElementById('horaRetiro');
-            if (hora) hora.required = esRetiro;
-        });
-    }
 
     const closeCheckout = document.getElementById('closeCheckoutModal');
     if (closeCheckout) {

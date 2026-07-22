@@ -453,19 +453,50 @@ RESPONSIVE
     width:100%;
 
     }
-    
+
     .footer{
-    
+
     padding-top:60px;
-    
+
     }
-    
+
     .footer__logo{
-    
+
     margin:auto auto 20px;
-    
+
     }
-    
+
+    /* Productos de láminas/peso: fila completa para que el input tenga espacio */
+    .product:has(.product__cart-area--peso){
+
+    grid-column:1 / -1;
+
+    }
+
+    /* Ajustes internos del área de peso en celular */
+    .peso-label{
+
+    font-size:.76rem;
+
+    }
+
+    .peso-spec{
+
+    padding:7px 10px;
+
+    font-size:.8rem;
+
+    }
+
+    /* Selector de cantidad en tarjetas normales */
+    .product__qty .qty-value{
+
+    min-width:20px;
+
+    font-size:.9rem;
+
+    }
+
     }
     
     
