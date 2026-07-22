@@ -164,9 +164,21 @@
                 </form>
             </section>
 
-            <!-- Buscador -->
+            <!-- Filtros de búsqueda -->
             <section class="admin-search">
-                <input id="buscar" type="text" placeholder="Buscar producto...">
+                <div class="admin-filtros">
+                    <input id="buscar" type="text" placeholder="Buscar por nombre, categoría o descripción...">
+                    <select id="filtroCategoria">
+                        <option value="">Todas las categorías</option>
+                    </select>
+                    <select id="filtroEstado">
+                        <option value="">Todos los productos</option>
+                        <option value="destacado">Destacados</option>
+                        <option value="oferta">En oferta</option>
+                        <option value="peso">Venta por peso</option>
+                        <option value="sinstock">Sin stock</option>
+                    </select>
+                </div>
             </section>
 
             <!-- Tabla de productos -->

@@ -85,6 +85,8 @@ let productos = obtenerProductos();
 const tablaProductos    = document.getElementById('tablaProductos');
 const productForm       = document.getElementById('productForm');
 const buscar            = document.getElementById('buscar');
+const filtroCategoria   = document.getElementById('filtroCategoria');
+const filtroEstado      = document.getElementById('filtroEstado');
 const productId         = document.getElementById('productId');
 const nombre            = document.getElementById('nombre');
 const categoria         = document.getElementById('categoria');
@@ -214,9 +216,8 @@ let _debounceTabla = null;
 function cargarTabla() {
     migrarFiambresAPorPeso();
     productos = obtenerProductos();
-    // Construye todo el HTML en memoria y lo vuelca de una sola vez
-    // (innerHTML += en bucle es O(n²): reparsea el DOM en cada iteración)
-    tablaProductos.innerHTML = productos.map(filaHTML).join('');
+    cargarFiltroCategoria(); // actualiza el dropdown de filtro
+    filtrarTabla();          // renderiza respetando los filtros activos
     renderizarCategoriasAdmin();
     cargarSelectCategorias();
 }
@@ -514,21 +515,37 @@ function eliminarProducto(id) {
 }
 
 /*============================
-Buscar
+Filtrar tabla (texto + categoría + estado)
 ============================*/
 
-buscar.addEventListener('input', function () {
-    const texto = this.value.toLowerCase().trim();
-    const filtrados = productos.filter(p =>
-        p.nombre.toLowerCase().includes(texto) ||
-        p.categoria.toLowerCase().includes(texto) ||
-        (p.descripcion || '').toLowerCase().includes(texto)
-    );
+function filtrarTabla() {
+    const texto  = buscar.value.toLowerCase().trim();
+    const cat    = filtroCategoria ? filtroCategoria.value : '';
+    const estado = filtroEstado    ? filtroEstado.value    : '';
+
+    const filtrados = productos.filter(p => {
+        if (texto && !(
+            p.nombre.toLowerCase().includes(texto) ||
+            p.categoria.toLowerCase().includes(texto) ||
+            (p.descripcion || '').toLowerCase().includes(texto)
+        )) return false;
+        if (cat    && p.categoria !== cat)                              return false;
+        if (estado === 'destacado' && !p.destacado)                    return false;
+        if (estado === 'oferta'    && !(p.enOferta && p.precioOferta)) return false;
+        if (estado === 'peso'      && !p.ventaPorPeso)                 return false;
+        if (estado === 'sinstock'  && (p.stock === null || p.stock === undefined || p.stock > 0)) return false;
+        return true;
+    });
+
     tablaProductos.innerHTML = filtrados.map(filaHTML).join('');
-});
+}
+
+buscar.addEventListener('input', filtrarTabla);
+if (filtroCategoria) filtroCategoria.addEventListener('change', filtrarTabla);
+if (filtroEstado)    filtroEstado.addEventListener('change',    filtrarTabla);
 
 /*============================
-Categorías (crear / eliminar).
+Categorías (crear / renombrar / eliminar).
 La lista vive en localStorage 'categorias'
 y se sincroniza con Firestore (config/categorias).
 El catálogo público arma sus chips de filtro
@@ -542,6 +559,34 @@ function todasLasCategorias() {
         ...getCategorias(),
         ...productos.map(p => p.categoria).filter(Boolean)
     ])].sort((a, b) => a.localeCompare(b, 'es'));
+}
+
+// Actualiza el select de filtro de la barra de búsqueda
+function cargarFiltroCategoria() {
+    if (!filtroCategoria) return;
+    const seleccionada = filtroCategoria.value;
+    const cats = todasLasCategorias();
+    filtroCategoria.innerHTML = '<option value="">Todas las categorías</option>' +
+        cats.map(c => `<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`).join('');
+    if (seleccionada && cats.includes(seleccionada)) filtroCategoria.value = seleccionada;
+}
+
+// Renombra una categoría: actualiza todos los productos + la lista de categorías
+function renombrarCategoria(antigua, nueva) {
+    nueva = nueva.trim();
+    if (!nueva || nueva === antigua) { renderizarCategoriasAdmin(); return; }
+    const existentes = todasLasCategorias();
+    if (existentes.some(c => c.toLowerCase() === nueva.toLowerCase() && c !== antigua)) {
+        alert(`Ya existe una categoría llamada "${nueva}".`);
+        renderizarCategoriasAdmin();
+        return;
+    }
+    const lista = obtenerProductos().map(p =>
+        p.categoria === antigua ? { ...p, categoria: nueva } : p
+    );
+    guardarProductos(lista);
+    productos = lista;
+    saveCategorias(existentes.map(c => c === antigua ? nueva : c));
 }
 
 function renderizarCategoriasAdmin() {
@@ -560,7 +605,10 @@ function renderizarCategoriasAdmin() {
         <div class="categoria-item">
             <span class="categoria-item__nombre"><i class="ri-price-tag-3-line"></i> ${escapeHTML(cat)}</span>
             <small class="categoria-item__usos">${usos} producto${usos === 1 ? '' : 's'}</small>
-            <button class="btn-delete" data-cat="${escapeHTML(cat)}" title="Eliminar categoría">
+            <button class="btn-edit btn-rename-cat" data-cat="${escapeHTML(cat)}" title="Renombrar">
+                <i class="ri-edit-line"></i>
+            </button>
+            <button class="btn-delete btn-delete-cat" data-cat="${escapeHTML(cat)}" title="Eliminar">
                 <i class="ri-delete-bin-line"></i>
             </button>
         </div>`;
@@ -596,10 +644,46 @@ document.getElementById('categoriaForm')?.addEventListener('submit', e => {
 });
 
 document.getElementById('listaCategorias')?.addEventListener('click', e => {
-    const btn = e.target.closest('button[data-cat]');
-    if (!btn) return;
-    const cat = btn.dataset.cat;
+    // Renombrar → activa edición inline
+    const renameBtn = e.target.closest('.btn-rename-cat');
+    if (renameBtn) {
+        const cat  = renameBtn.dataset.cat;
+        const item = renameBtn.closest('.categoria-item');
+        item.innerHTML = `
+            <i class="ri-price-tag-3-line" style="color:#800020;font-size:1.1rem;flex-shrink:0;"></i>
+            <input class="rename-cat-input" value="${escapeHTML(cat)}" maxlength="40">
+            <button class="btn-confirm-rename" data-oldcat="${escapeHTML(cat)}" title="Guardar">
+                <i class="ri-check-line"></i>
+            </button>
+            <button class="btn-cancel-rename" title="Cancelar">
+                <i class="ri-close-line"></i>
+            </button>`;
+        const inp = item.querySelector('.rename-cat-input');
+        inp.focus();
+        inp.select();
+        return;
+    }
 
+    // Confirmar renombrado
+    const confirmBtn = e.target.closest('.btn-confirm-rename');
+    if (confirmBtn) {
+        const item   = confirmBtn.closest('.categoria-item');
+        const oldCat = confirmBtn.dataset.oldcat;
+        const newCat = item.querySelector('.rename-cat-input').value;
+        renombrarCategoria(oldCat, newCat);
+        return;
+    }
+
+    // Cancelar renombrado
+    if (e.target.closest('.btn-cancel-rename')) {
+        renderizarCategoriasAdmin();
+        return;
+    }
+
+    // Eliminar
+    const deleteBtn = e.target.closest('.btn-delete-cat');
+    if (!deleteBtn) return;
+    const cat  = deleteBtn.dataset.cat;
     const usos = productos.filter(p => p.categoria === cat).length;
     if (usos > 0) {
         alert(`No se puede eliminar "${cat}": la usan ${usos} producto${usos === 1 ? '' : 's'}.\nCambia primero esos productos a otra categoría.`);
@@ -609,10 +693,22 @@ document.getElementById('listaCategorias')?.addEventListener('click', e => {
     saveCategorias(todasLasCategorias().filter(c => c !== cat));
 });
 
+// Enter / Escape en el input de renombrar
+document.getElementById('listaCategorias')?.addEventListener('keydown', e => {
+    if (!e.target.classList.contains('rename-cat-input')) return;
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        e.target.closest('.categoria-item').querySelector('.btn-confirm-rename')?.click();
+    } else if (e.key === 'Escape') {
+        renderizarCategoriasAdmin();
+    }
+});
+
 // saveCategorias y la sincronización con Firestore disparan este evento
 document.addEventListener('categoriasActualizadas', () => {
     renderizarCategoriasAdmin();
     cargarSelectCategorias();
+    cargarFiltroCategoria();
 });
 
 /*============================

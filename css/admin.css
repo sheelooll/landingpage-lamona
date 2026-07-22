@@ -176,10 +176,87 @@ BUSCADOR
 ==========================*/
 
 .admin-search{
-
     margin-bottom:25px;
-
 }
+
+/* Barra de filtros */
+.admin-filtros{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+}
+
+.admin-filtros > input{
+    flex:1;
+    min-width:200px;
+}
+
+.admin-filtros select{
+    padding:12px 14px;
+    border:1px solid #ddd;
+    border-radius:10px;
+    font-size:.95rem;
+    color:#444;
+    background:white;
+    cursor:pointer;
+    outline:none;
+    transition:.25s;
+    flex:0 0 auto;
+}
+
+.admin-filtros select:focus{
+    border-color:#800020;
+    box-shadow:0 0 0 3px rgba(128,0,32,.1);
+}
+
+/* Input de renombrar categoría (inline) */
+.rename-cat-input{
+    flex:1;
+    min-width:0;
+    padding:7px 12px;
+    border:1.5px solid #800020;
+    border-radius:8px;
+    font-size:.95rem;
+    font-family:inherit;
+    outline:none;
+    box-shadow:0 0 0 3px rgba(128,0,32,.12);
+}
+
+.btn-confirm-rename{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:32px;
+    height:32px;
+    border-radius:8px;
+    border:none;
+    background:#16a34a;
+    color:white;
+    cursor:pointer;
+    font-size:1rem;
+    flex-shrink:0;
+    transition:.2s;
+}
+
+.btn-confirm-rename:hover{ background:#15803d; }
+
+.btn-cancel-rename{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:32px;
+    height:32px;
+    border-radius:8px;
+    border:1px solid #ddd;
+    background:white;
+    color:#666;
+    cursor:pointer;
+    font-size:1rem;
+    flex-shrink:0;
+    transition:.2s;
+}
+
+.btn-cancel-rename:hover{ background:#f3f3f3; }
 
 .admin-search input{
 
