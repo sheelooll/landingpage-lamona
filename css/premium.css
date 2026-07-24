@@ -151,8 +151,39 @@ que el fade-up del observer sea suave
 }
 
 .product__button:active:not(:disabled){
-    transform:scale(.85) rotate(90deg);
+    transform:scale(.85);
     transition-duration:.12s;
+}
+
+/*==========================
+TICKET "AGREGADO"
+Chip flotante que sube y se desvanece
+==========================*/
+
+@keyframes ticketUp{
+    0%  { opacity:1; transform:translateX(-50%) translateY(0) scale(1); }
+    100%{ opacity:0; transform:translateX(-50%) translateY(-38px) scale(.85); }
+}
+
+.btn-ticket{
+    position:absolute;
+    bottom:calc(100% + 8px);
+    left:50%;
+    transform:translateX(-50%);
+    background:var(--primary);
+    color:white;
+    font-size:.72rem;
+    font-weight:700;
+    padding:5px 12px;
+    border-radius:50px;
+    white-space:nowrap;
+    pointer-events:none;
+    animation:ticketUp .65s var(--ease-out) forwards;
+    z-index:20;
+}
+
+.product__button{
+    position:relative;
 }
 
 .product__button:disabled{

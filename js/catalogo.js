@@ -279,14 +279,24 @@ function agregarEventosProductos() {
                     return;
                 }
                 window.carrito.agregar(Number(add.dataset.id), 1, spec);
+                mostrarTicketBtn(add);
                 if (specInput) specInput.value = '';
             } else {
                 const cantidad = valor ? Number(valor.textContent) : 1;
                 window.carrito.agregar(Number(add.dataset.id), cantidad);
+                mostrarTicketBtn(add);
                 if (valor) valor.textContent = '1';
             }
         }
     });
+}
+
+function mostrarTicketBtn(btn) {
+    const ticket = document.createElement('span');
+    ticket.className = 'btn-ticket';
+    ticket.textContent = '✓ Agregado';
+    btn.appendChild(ticket);
+    ticket.addEventListener('animationend', () => ticket.remove());
 }
 
 /*============================

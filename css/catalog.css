@@ -299,15 +299,17 @@ CATALOGO
     }
     
     .product__image img{
-    
+
     width:100%;
-    
+
     height:100%;
-    
-    object-fit:cover;
-    
+
+    object-fit:contain;
+
+    padding:8px;
+
     transition:.45s;
-    
+
     }
     
     .product:hover .product__image img{
@@ -447,11 +449,11 @@ CATALOGO
     }
     
     .product__button:hover{
-    
-    transform:rotate(90deg);
-    
+
+    transform:scale(1.1);
+
     background:var(--primary-dark);
-    
+
     }
     
     /*==========================
